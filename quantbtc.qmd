@@ -1,0 +1,97 @@
+---
+title: "kdakd"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+# Load necessary libraries
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(lubridate)
+library(readr)
+
+# Define function to fetch each metric
+get_metric <- function(endpoint) {
+  url <- paste0("https://blockchain.info/q/", endpoint)
+  response <- GET(url)
+  value <- as.numeric(content(response, "text", encoding = "UTF-8"))
+  return(value)
+}
+
+# Pull metrics from Blockchain.com API
+timestamp <- Sys.time()
+
+block_height <- get_metric("getblockcount")
+hash_rate <- get_metric("hashrate")              # GH/s
+difficulty <- get_metric("getdifficulty")
+market_cap <- get_metric("marketcap") / 1e9      # Convert to billions USD
+total_btc <- get_metric("totalbc") / 1e8         # BTC in circulation
+unconfirmed_tx <- get_metric("unconfirmedcount")
+tx_count_24h <- get_metric("24hrtransactioncount")
+
+# Create a data frame with this snapshot
+snapshot <- data.frame(
+  timestamp = timestamp,
+  block_height = block_height,
+  hash_rate_GHs = hash_rate,
+  difficulty = difficulty,
+  market_cap_BUSD = market_cap,
+  total_btc = total_btc,
+  unconfirmed_tx = unconfirmed_tx,
+  tx_count_24h = tx_count_24h
+)
+
+# View it
+print(snapshot)
+
+# Load existing data if available
+file_path <- "btc_network_stats.csv"
+if (file.exists(file_path)) {
+  existing_data <- read_csv(file_path)
+  updated_data <- bind_rows(existing_data, snapshot)
+} else {
+  updated_data <- snapshot
+}
+
+# Save updated data
+write_csv(updated_data, file_path)
+
+```
+
+```{r}
+devtools::install_github("coinmetrics/api-client-r")
+library(coinmetrics)
+
+
+btc_data <- get_asset_metrics(
+  assets = "btc",
+  metrics = c("AdrActCnt", "TxCnt", "SplyCur"),
+  start_time = "2013-01-01",
+  end_time = Sys.Date()
+)
+
+
+```

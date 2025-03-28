@@ -1,0 +1,145 @@
+---
+title: "Mitch_Research"
+format: html
+editor: visual
+---
+
+
+
+```{r}
+add_text <- function(plt, x, y, text, size, color){
+  
+  plt %>% 
+    plotly::layout(
+      annotations = list(
+      list(
+        x = x, y = y, 
+        text = text, 
+        showarrow = FALSE, 
+        xanchor = "center", 
+        yanchor = "bottom",
+        font = list(size = size, color = color),
+        textangle = -90
+      )
+    )
+  )
+    
+}
+```
+
+```{r}
+library(tidyverse)
+
+
+bit <- tidyquant::tq_get(
+  c('ETC-USD', 'BTC-USD'),
+  get = 'stock.prices',
+  from = '2009-01-01'
+) %>% 
+  dplyr::filter(symbol == 'BTC-USD') %>% 
+  dplyr::select(date, open, high, low, close)
+
+
+candle <- bit %>% plotly::plot_ly(
+  x = ~date,
+  type = 'candlestick',
+  open = ~open,
+  high = ~high,
+  low = ~low,
+  close = ~close
+) %>% 
+  plotly::layout(
+    title = "BTC since 2014",
+    shapes = list(
+      list(type = 'line', x0 = as.Date('2017-12-16'), x1 = as.Date('2017-12-16'), y0 = 0, y1 = 120000, line = list(color = 'grey', dash = 'dash')),
+      list(type = "rect", x0 = as.Date('2020-12-09'), x1 = as.Date('2022-06-09'), y0 = 0, y1 = 120000, fillcolor = "rgba(255, 0, 0, 0.2)",
+           line = list(color = 'red', dash = 'dash')),
+      list(type = "rect", x0 = as.Date('2023-01-10'), x1 = max(bit$date), y0 = 0, y1 = 120000, fillcolor = "rgba(0, 255, 0, 0.2).",
+           line = list(color = 'green', dash = 'dash'))
+    )) %>% 
+  add_text(., as.Date('2017-11-05'), 60000, "First Peak. Why?", 12, 'grey') %>% 
+  add_text(., as.Date('2020-10-05'), 60000, "Huge Vol. Why?", 12, 'red') %>% 
+  add_text(., as.Date('2022-12-05'), 60000, "Huge Bull Run. Why?", 12, 'green')
+  
+
+candle
+
+```
+
+
+```{r}
+library(ggridges)
+bit %>% 
+  dplyr::mutate(
+    intraday = log(close / open),
+    closeclose = log(close / lag(close)),
+    overnight = log(open / lag(close))
+  ) %>% 
+  tidyr::drop_na() %>% 
+  dplyr::select(date, intraday,  closeclose, overnight) %>% 
+  tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+  plotly::plot_ly(y = ~value, x = ~series, color = ~series, type = "box") %>%
+  plotly::layout(title = "Daily Log Returns by type",
+         xaxis = list(title = ""),
+         yaxis = list(title = "Log Returns", tickformat = '.1%'))
+```
+
+
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+
+
+monthcor <- tidyquant::tq_get(
+  c('ETC-USD', 'BTC-USD'),
+  get = 'stock.prices',
+  from = '2009-01-01'
+) %>% 
+  dplyr::select(date, symbol, close) %>% 
+  dplyr::group_by(symbol) %>% 
+  dplyr::mutate(r = log(close / lag(close))) %>% 
+  tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>% 
+  tidyr::drop_na() %>% 
+  dplyr::mutate(
+    cor30 = slider::slide2_dbl(
+      .x = `ETC-USD`,
+      .y = `BTC-USD`,
+      .f = ~cor(.x, .y),
+      .before = 30
+      
+    )
+  ) %>%
+  ggplot(aes(x = date, y = cor30)) + geom_line()
+
+path <- tidyquant::tq_get(
+  c('ETC-USD', 'BTC-USD'),
+  get = 'stock.prices',
+  from = '2009-01-01'
+) %>% 
+  dplyr::select(date, symbol, close) %>% 
+  group_by(symbol) %>%
+  mutate(scaled_close = scale(close)[,1]) %>%  # Extract column from scale()
+  ungroup() %>% 
+  dplyr::filter(date >= '2014-09-18') %>% 
+  ggplot(aes(x = date, y = scaled_close, col = symbol)) + geom_line()
+
+
+path / monthcor
+
+
+tidyquant::tq_get(
+  c('ETC-USD', 'BTC-USD'),
+  get = 'stock.prices',
+  from = '2009-01-01'
+) %>% 
+  dplyr::select(date, symbol, close) %>% 
+  dplyr::group_by(symbol) %>% 
+  dplyr::mutate(r = log(close / lag(close))) %>% 
+tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>% 
+  #dplyr::filter(date >= '2020-03-01' & date <= '2020-05-31') %>% 
+  ggplot(aes(x = `ETC-USD`, y = `BTC-USD`)) + geom_point()
+
+```
+ 

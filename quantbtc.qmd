@@ -109,6 +109,81 @@ all_symbols_cm
 ```
 
 ```{r, Aftikhar_sample code}
+library(httr)
+library(jsonlite)
+library(dplyr)
+
+# Fetch Fear & Greed Index data
+fg_data <- fromJSON("https://api.alternative.me/fng/?limit=180")
+
+# Convert to dataframe and process timestamps
+fg_df <- fg_data$data %>%
+  mutate(
+    date = as.Date(as.POSIXct(as.numeric(timestamp))))
+
+
+# Plot Fear & Greed Index over time
+library(ggplot2)
+
+ggplot(fg_df, aes(x = as.Date(date), y = as.numeric(value))) +
+  geom_line(color = "#FF6B6B") +
+  labs(title = "Crypto Fear & Greed Index", x = "Date", y = "Index Value") +
+  theme_minimal()
+
+
+library(quantmod)
+getSymbols("BTC-USD", src = "yahoo", auto.assign = TRUE)
+
+btc_price <- data.frame(date = index(`BTC-USD`), coredata(`BTC-USD`)) %>% select((date), BTC.USD.Adjusted) %>% rename(price_adj = BTC.USD.Adjusted) 
+
+GnF_BTC <- fg_df %>% 
+  left_join(
+    btc_price,
+    by = "date"
+  ) %>%
+  arrange(date) %>% select(date,value, price_adj, value_classification) %>% mutate(value = as.numeric(value))
+
+
+
+library(ggplot2)
+library(patchwork)
+p1 <- GnF_BTC %>% ggplot(aes(x=date)) + 
+  geom_line(aes(y=as.numeric(value))) 
+
+p2 <- GnF_BTC %>% ggplot(aes(x=date, y = price_adj)) + geom_line()
+
+(p1 / p2)
+
+
+
+
+# Load necessary libraries
+library(zoo)
+library(ggplot2)
+
+# Define your rolling window size
+window_size <- 30
+
+# Compute the rolling correlation between 'value' and 'price_adj'
+rolling_corr <- rollapply(
+  data = GnF_BTC[, c("value", "price_adj")],
+  width = window_size,
+  FUN = function(x) cor(x[, "value"], x[, "price_adj"], use = "complete.obs"),
+  by.column = FALSE,
+  fill = NA,
+  align = "right"
+)
+
+# Add the rolling correlation to your data frame
+GnF_BTC$rolling_corr <- as.numeric(rolling_corr)
+
+# Plot the rolling correlation over time
+ggplot(GnF_BTC, aes(x = date, y = rolling_corr)) +
+  geom_line(color = "steelblue") +
+  labs(title = "30-Day Rolling Correlation between Value and Price_adj",
+       x = "Date",
+       y = "Rolling Correlation") +
+  theme_minimal()
 
 ```
 

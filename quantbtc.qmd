@@ -4,6 +4,146 @@ format: html
 editor: visual
 ---
 
+# Investment Strategy: Relative Value Volatility Capture (RVVC)
+
+## Strategy Objective:
+
+To generate alpha by identifying and trading mispricings in selected emerging cryptocurrencies relative to Bitcoin, using a quantitative model that incorporates relative value spreads, market sentiment, momentum factors, and other indicators as we identify applied across a diversified portfolio of qualifying assets.
+
+###  Phase 1: Asset Selection & Universe Definition
+
+**Goal:** Identify a pool of tradable emerging crypto assets suitable for the strategy.
+
+1.  **Market Capitalization:** Exclude top 20-30 assets (like BTC, ETH). Define a minimum market cap (e.g., \> \$50 Million) to ensure some level of establishment, but low enough to capture emerging opportunities.
+
+2.  **Liquidity:** Minimum average daily trading volume ( \> \$1 Million USD) across selected reputable exchanges. Sufficient order book depth to allow execution without excessive slippage for intended position sizes.
+
+3.  **Exchange Listing:** Traded on at least \[e.g., 2-3\] major exchanges with reliable API access and reasonable withdrawal/deposit processes.
+
+4.  **Data Availability:** Sufficient historical price data (at least \[e.g., 1-2 years\]) for both the asset and its pairing against Bitcoin (or easily calculable). Availability of volume and potentially on-chain data.
+
+5.  **Fundamental Screen (Qualitative Overlay):** Basic check for legitimacy – active development team, coherent whitepaper/documentation, active community, no obvious signs of being a scam or defunct project. This is a *filter*, not the primary driver.
+
+**Measurements & Monitoring:** Regularly screen the market based on these criteria. Maintain a dynamic "Eligible Universe" list. Track liquidity, volume, and exchange status continuously.
+
+### Phase 2: Core Model - Relative Value Spread Analysis
+
+**Concept:** Model the price relationship of a selected Altcoin relative to Bitcoin (BTC), assuming BTC represents the broader crypto market's systematic movement. Deviations from the typical relationship present potential trading opportunities.
+
+**Steps:**
+
+1.  **Spread Calculation:** Define the spread: `Spread = Altcoin Price (in USD) / Bitcoin Price (in USD)`. Alternatively, use the direct Altcoin/BTC pair price if reliably available (`Spread = Altcoin Price in BTC`). This normalizes the altcoin's price relative to the market benchmark.
+
+2.  **Distribution Modeling:**
+
+    -   Analyze the historical time series of the calculated spread.
+
+    -   Test for stationarity (e.g., using ADF test). If non-stationary, consider using returns or differences of the spread.
+
+    -   Recognize that financial returns, especially crypto, exhibit fat tails (leptokurtosis) and potential skewness. Standard Normal distribution is often inadequate.
+
+    -   **Fit a suitable distribution:**
+
+        -   **Parametric:** Student's t-distribution (captures fat tails), Generalized Pareto Distribution (GPD - often used in Extreme Value Theory to model tails explicitly), Stable Distribution. Estimate parameters using Maximum Likelihood Estimation (MLE) or similar methods.
+
+        -   **Non-Parametric:** Kernel Density Estimation (KDE). Provides flexibility but can be harder to interpret tail probabilities precisely.
+
+    -   **Purpose:** The fitted distribution provides a probabilistic description of the spread's typical behavior and defines "extreme" deviations (e.g., movement beyond the 95th or 5th percentile). This distribution serves as the **Baseline Indicator** for potential mean reversion or trend continuation in the relative valuation.
+
+### Phase 3: Signal Enhancement - Composite Indicator Overlay
+
+**Goal:** Increase the robustness of buy/sell signals by requiring confirmation from additional factors beyond just the spread's statistical deviation.
+
+**Indicators to Integrate:**
+
+1.  **Market Sentiment:**
+
+    -   **Indicator:** Crypto Fear & Greed Index (or similar aggregate sentiment measures).
+
+    -   **Application:** Look for confirmation between spread extremes and sentiment extremes. E.g., require "Extreme Fear" (\< 20) to confirm a buy signal when the spread hits a statistical low; require "Extreme Greed" (\> 80) to confirm a sell signal when the spread hits a statistical high.
+
+2.  **Momentum (of the Spread):**
+
+    -   **Indicator:** Apply momentum indicators like RSI (Relative Strength Index) or MACD (Moving Average Convergence Divergence) directly to the *spread time series*.
+
+    -   **Application:** Look for divergences (e.g., spread makes a new low, but RSI makes a higher low – potential bullish divergence confirming a buy signal) or confirmation (RSI crossing below 30 reinforces a buy signal).
+
+3.  **Volume (Confirmation):**
+
+    -   **Indicator:** Trading volume of the specific Altcoin/USD or Altcoin/BTC pair.
+
+    -   **Application:** Increased volume accompanying a move to a spread extreme can confirm the validity of the move. Look for volume spikes or above-average volume when the spread crosses key thresholds derived from the distribution. Volume Profile analysis on the spread chart could identify key support/resistance levels.
+
+4.  **Volatility (Regime Filter):**
+
+    -   **Indicator:** Historical Volatility (e.g., standard deviation of returns over a rolling window) of the spread or the underlying altcoin.
+
+    -   **Application:** The strategy might perform differently in high vs. low volatility regimes. Potentially adjust position sizing or signal thresholds based on the current volatility regime. For instance, require wider deviation thresholds during high volatility periods.
+
+**Signal Generation Logic (Example):**
+
+-   **Potential Buy Signal:** Spread drops below the \[e.g., 5th or 10th\] percentile of its fitted distribution.
+
+-   **Confirmed Buy Signal:** Potential Buy Signal occurs AND Fear & Greed Index is below \[e.g., 25\] AND Spread RSI shows bullish divergence or is below \[e.g., 30\] AND Volume is above its \[e.g., 20-day\] moving average.
+
+-   **Potential Sell/Short Signal:** Spread rises above the \[e.g., 90th or 95th\] percentile of its fitted distribution.
+
+-   **Confirmed Sell/Short Signal:** Potential Sell/Short Signal occurs AND Fear & Greed Index is above \[e.g., 75\] AND Spread RSI shows bearish divergence or is above \[e.g., 70\].
+
+-   **Exit Logic:** Can be based on the spread returning to its mean/median, hitting a predefined profit target, or an invalidation signal (e.g., stop-loss based on adverse spread movement, or a fundamental change in the asset).
+
+### **Phase 4: Portfolio Construction & Management**
+
+-   **Goal:** Apply the RVVC strategy across multiple qualifying assets simultaneously to achieve diversification and smoother returns.
+
+-   **Considerations:**
+
+    1.  **Correlation:** Altcoin spreads vs. Bitcoin can still be correlated. Monitor the correlation matrix of the spreads of the assets in the portfolio. High correlation might dilute diversification benefits.
+
+    2.  **Capital Allocation:** Allocate capital across different opportunities. Methods:
+
+        -   *Equal Weighting:* Simplest, but ignores differences in signal strength or volatility.
+
+        -   *Risk Parity:* Allocate capital such that each position contributes equally to the overall portfolio's risk (requires estimating volatility/risk of each spread strategy). More complex but better risk balancing.
+
+        -   *Signal Strength Weighting:* Allocate more capital to signals with higher conviction (e.g., multiple indicators strongly confirming).
+
+    3.  **Dynamic Rebalancing:** Periodically rebalance the portfolio back to target allocations. Define frequency (e.g., weekly, monthly) or threshold-based rebalancing (when allocations drift significantly).
+
+    4.  **Overall Portfolio Risk:** Monitor aggregate portfolio risk metrics (VaR, CVaR, Drawdown) and adjust overall leverage or exposure based on market conditions or risk limits.
+
+### Phase 5: Integration with Other Asset Classes (Optional Enhancement)
+
+**Goal:** Further enhance diversification, manage overall portfolio volatility, or potentially generate additional alpha streams.
+
+**Potential Additions:**
+
+1.  **Stablecoins (Risk Management / Liquidity):** Holding a portion of the portfolio in high-quality stablecoins (USDC, USDT - monitor their risks too) acts as a buffer during market downturns ("dry powder") and provides liquidity for new opportunities or margin requirements. Allocation can be dynamic based on overall market risk signals.
+
+2.  **Bitcoin (Core Holding / Hedge):** While used as the benchmark, holding a core position in BTC could act as a partial hedge if altcoin spreads tend to compress (i.e., altcoins underperform BTC) during sharp market sell-offs. The strategy focuses on the *relative* value, but absolute P&L is impacted by BTC's price.
+
+3.  **Tokenized Real-World Assets (RWAs) or Thematic Baskets (Future Potential):** As the market matures, incorporating tokenized assets with lower correlation to the general crypto market (e.g., tokenized bonds, real estate, commodities) could significantly improve diversification. Requires careful vetting of RWA protocols and liquidity.
+
+4.  **Volatility Futures/Options (Advanced):** If expertise exists, trading volatility instruments (e.g., options on BTC/ETH, or potential future crypto VIX equivalents) could be used to hedge portfolio volatility or express views on market turbulence.
+
+**Integration Approach:** Manage these as separate sleeves within the overall portfolio, with capital allocated based on top-down risk assessment or macroeconomic views. Alternatively, signals from these other assets (e.g., a spike in traditional market volatility like VIX) could be incorporated as another input into the composite indicator for the RVVC strategy (e.g., reduce risk during cross-asset volatility spikes).
+
+### Phase 6: Backtesting & Refinement
+
+-   Rigorous backtesting is crucial. Simulate the strategy over historical data, accounting for estimated transaction costs, slippage, and potential data biases.
+
+<!-- -->
+
+-   Analyze performance metrics: Omega ratio, Sortino Ratio, Maximum Drawdown, Calmar Ratio, win rate, average profit/loss per trade.
+
+<!-- -->
+
+-   Optimize parameters (distribution percentiles, indicator thresholds) carefully, avoiding overfitting (use walk-forward optimization or cross-validation).
+
+<!-- -->
+
+-   Continuously monitor live performance against backtested expectations and adapt the model as market dynamics evolve.
+
 Systematic risk and idiosyncratic risks of crypto:
 
 Systematic risks:
@@ -120,7 +260,7 @@ library(jsonlite)
 library(dplyr)
 
 # Fetch Fear & Greed Index data
-fg_data <- fromJSON("https://api.alternative.me/fng/?limit=180")
+fg_data <- fromJSON("https://api.alternative.me/fng/?limit=5000")
 
 # Convert to dataframe and process timestamps
 fg_df <- fg_data$data %>%

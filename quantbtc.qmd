@@ -4,26 +4,29 @@ format: html
 editor: visual
 ---
 
-## Quarto
+Systematic risk and idiosyncratic risks of crypto:
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+Systematic risks:
 
-## Running Code
+1.  Regulatory uncertainty (we cannot control it neither quantitatively measure it)
+2.  Macroeconomic conditions: Interst rate hikes, inflation, recession can create fear which reduces risk appetite of investing. We need to get our hands on as many of these as possible.
+3.  Technological risks: Vulnerabilites in blockchain infrastructure, attacks or protocol failtures
+4.  Market Sentiment and herd behavior: majority of crypto investors are retail, between the ages of 18 - 35. They get most of their investment decisions from social media, panic (fear and greed) and impulsive reaction to news is the biggest reason for volatility associated to this asset class.
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+Idiosyncratic risk :
 
-```{r}
-1 + 1
-```
+1.  Project failture,
 
-You can add options to executable code like this
+2.  smart contract vulnerabilities (bugs expliots that can lead to hacks) causes users to lose confidence in the project,
 
-```{r}
-#| echo: false
-2 * 2
-```
+3.  leadership/developer decisions can make or break a project, tokenomics and supply issues (mismanagement of token supply, inflation).
 
-The `echo: false` option disables the printing of code (only output is displayed).
+    These idiosyncratic risks are not alwyse priced in becuase of information asymmetry (investors dont understand it or it is not public information)
+
+Possible things that can impact the price of crypto (specially BTC)
+
+1.  Consumer confidence and traditional market indices: lets correlate most important indices with cryptos
+2.  Energy consumption
 
 BTC, ETH, XRP, BNB, SOL, DOGE, ADA, TRX, STETH, WBTC, TON, LINK, LEO, AVAX, XLM
 
@@ -95,7 +98,8 @@ OM, ICP, INJ
 #No SOL, no SELTH, no ton, no leo, no avax, no SUI, no WSTETH, no USDS, no SHIB, no HBAR
 
 
-
+library(coinmetrics)
+Sys.setenv()
 
 
 btc_data <- get_asset_metrics(
@@ -108,7 +112,9 @@ btc_data <- get_asset_metrics(
 all_symbols_cm
 ```
 
-```{r, Aftikhar_sample code}
+# Fear and greed index
+
+```{r, Aftikhar_code}
 library(httr)
 library(jsonlite)
 library(dplyr)

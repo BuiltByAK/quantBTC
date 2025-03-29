@@ -112,7 +112,6 @@ btc_data <- get_asset_metrics(
 all_symbols_cm
 ```
 
-<<<<<<< HEAD
 # Fear and greed index
 
 ```{r, Aftikhar_code}
@@ -892,7 +891,7 @@ CM_UNSUPPORTED_ASSETS <- c(
     "susde", "buidl", "lbtc", "kas", "pol", "s", "ftn", "arb", "ip",
     "solvbtc", "rseth", "move", "bnsol", "wld", "dexe", "bonk", "sei",
     "usdt0", "reth", "usd0", "bera", "usdc.e", "flr", "solvbtc.bbn", "pyusd",
-    "wbnb", "om", "inj" # <<< Added om, inj
+    "wbnb", "om", "inj"
 )
 
 # --- API Key Configuration ---

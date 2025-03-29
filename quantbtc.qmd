@@ -113,8 +113,6 @@ all_symbols_cm
 ```
 
 <<<<<<< HEAD
-# **Final look:**
-=======
 # Fear and greed index
 
 ```{r, Aftikhar_code}
@@ -196,6 +194,7 @@ ggplot(GnF_BTC, aes(x = date, y = rolling_corr)) +
 
 ```
 
+#Final Look
 ```{r}
 # --- 0. Setup: Load Libraries and Set Parameters ---
 

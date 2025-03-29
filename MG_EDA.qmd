@@ -32,12 +32,11 @@ library(tidyverse)
 
 
 bit <- tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
+  'BTC-USD',
   get = 'stock.prices',
-  from = '2009-01-01'
+  from = '2014-09-17'
 ) %>% 
-  dplyr::filter(symbol == 'BTC-USD') %>% 
-  dplyr::select(date, open, high, low, close)
+  tidyr::drop_na()
 
 
 candle <- bit %>% plotly::plot_ly(
@@ -68,14 +67,20 @@ candle
 
 
 ```{r}
-library(ggridges)
+
 bit %>% 
+  dplyr::mutate(check = open == lag(close))
+
+
+rets <- bit %>% 
   dplyr::mutate(
     intraday = log(close / open),
     closeclose = log(close / lag(close)),
     overnight = log(open / lag(close))
   ) %>% 
-  tidyr::drop_na() %>% 
+  tidyr::drop_na()
+
+rets %>% 
   dplyr::select(date, intraday,  closeclose, overnight) %>% 
   tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
   plotly::plot_ly(y = ~value, x = ~series, color = ~series, type = "box") %>%
@@ -85,6 +90,44 @@ bit %>%
 ```
 
 
+```{r stl}
+library(zoo)
+
+
+monthly <- bit %>%
+  tidyquant::tq_transmute(select = close, mutate_fun = periodReturn, period = "monthly", type = "log", col_rename = 'BITUSD') 
+
+
+components <- monthly %>% 
+  dplyr::mutate(freq = tsibble::yearmonth(date)) %>% 
+  dplyr::select(-date) %>% 
+  tsibble::as_tsibble(index = freq) %>% 
+  fabletools::model(
+    feasts::STL(formula = BITUSD ~ season(window = 13))
+  ) %>% 
+  fabletools::components()
+
+components %>% autoplot()
+
+```
+
+```{r, diffusion properties}
+
+stats::qqnorm(monthly$BITUSD, main = "Log Returns - Normal Q-Q Plot")
+stats::qqline(monthly$BITUSD, col = "red") # Pass vis test 1 for normal
+
+monthly %>% 
+  ggplot(aes(x = BITUSD)) + geom_histogram(aes(y = after_stat(density))) # not going to have enough dat points will need further test i.e JB
+
+tseries::jarque.bera.test(monthly$BITUSD) # high p fail to reject - monthly log is normal
+
+stats::qqnorm(rets$closeclose, main = "Log Returns - Normal Q-Q Plot")
+stats::qqline(rets$closeclose, col = "red")
+
+garchdat <- rets %>% dplyr::select(date, closeclose)
+garchdat <- RTL::garch(garchdat)
+
+```
 
 
 ```{r}

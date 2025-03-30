@@ -849,66 +849,74 @@ df_final_training <- df_final_training %>% left_join(garch_df, by = "date")
 training_model_garch <- lm(formula = formula_enhanced1, data = df_final_training)
 
 # === Step 7: Optimization of Rolling Window, Thresholds, and Stop Loss ===
-roll_windows <- seq(30, 180, by = 15)
-mean_multipliers <- seq(0.2, 1.0, by = 0.1)
-sd_multipliers <- seq(0.5, 2.0, by = 0.1)
-stop_losses <- seq(2, 10, by = 1)
+# roll_windows <- seq(30, 180, by = 15)
+# mean_multipliers <- seq(0.2, 1.0, by = 0.1)
+# sd_multipliers <- seq(0.5, 2.0, by = 0.1)
+# stop_losses <- seq(2, 10, by = 1)
+# 
+# roll_opt_results <- expand_grid(
+#   roll_window = roll_windows,
+#   mean_mult = mean_multipliers,
+#   sd_mult = sd_multipliers,
+#   stop_loss = stop_losses
+# ) %>%
+#   mutate(
+#     sharpe = pmap_dbl(list(roll_window, mean_mult, sd_mult, stop_loss), function(window, mean_mult, sd_mult, stop_loss) {
+#       df_temp <- df_final_training %>%
+#         mutate(
+#           expected_sharpe = predict(training_model, newdata = .) / garch,
+#           roll_mean = slide_dbl(expected_sharpe, mean, .before = window, .complete = TRUE),
+#           roll_sd   = slide_dbl(expected_sharpe, sd, .before = window, .complete = TRUE),
+#           dynamic_long_thresh = roll_mean + mean_mult * roll_sd,
+#           dynamic_short_thresh = roll_mean - sd_mult * roll_sd,
+#           position_raw = case_when(
+#             expected_sharpe > dynamic_long_thresh ~ 1,
+#             expected_sharpe < dynamic_short_thresh ~ -1,
+#             TRUE ~ 0
+#           )
+#         )
+# 
+#       # Simulate position with stop loss and re-entry allowed
+#       position_with_stop <- rep(0, nrow(df_temp))
+#       current_position <- 0
+#       entry_price <- NA
+# 
+#       for (i in seq_along(position_with_stop)) {
+#         signal <- df_temp$position_raw[i]
+#         price <- df_temp$PriceUSD[i]
+# 
+#         if (current_position == 0) {
+#           if (signal != 0) {
+#             current_position <- signal
+#             entry_price <- price
+#           }
+#         } else {
+#           ret_since_entry <- (price - entry_price) / entry_price * 100 * current_position
+#           if (ret_since_entry <= -stop_loss || signal == -current_position) {
+#             current_position <- signal
+#             entry_price <- price
+#           }
+#         }
+#         position_with_stop[i] <- current_position
+#       }
+# 
+#       df_temp$position_with_stop <- position_with_stop
+#       df_temp$strategy_return <- dplyr::lag(df_temp$position_with_stop) * df_temp$forward_ROI30d / 30
+# 
+#       mean(df_temp$strategy_return, na.rm = TRUE) / sd(df_temp$strategy_return, na.rm = TRUE)
+#     })
+#   )
+# 
+# best_combo <- roll_opt_results %>% filter(sharpe == max(sharpe, na.rm = TRUE))
+# print(best_combo)
 
-roll_opt_results <- expand_grid(
-  roll_window = roll_windows,
-  mean_mult = mean_multipliers,
-  sd_mult = sd_multipliers,
-  stop_loss = stop_losses
-) %>%
-  mutate(
-    sharpe = pmap_dbl(list(roll_window, mean_mult, sd_mult, stop_loss), function(window, mean_mult, sd_mult, stop_loss) {
-      df_temp <- df_final_training %>%
-        mutate(
-          expected_sharpe = predict(training_model, newdata = .) / garch,
-          roll_mean = slide_dbl(expected_sharpe, mean, .before = window, .complete = TRUE),
-          roll_sd   = slide_dbl(expected_sharpe, sd, .before = window, .complete = TRUE),
-          dynamic_long_thresh = roll_mean + mean_mult * roll_sd,
-          dynamic_short_thresh = roll_mean - sd_mult * roll_sd,
-          position_raw = case_when(
-            expected_sharpe > dynamic_long_thresh ~ 1,
-            expected_sharpe < dynamic_short_thresh ~ -1,
-            TRUE ~ 0
-          )
-        )
-
-      # Simulate position with stop loss and re-entry allowed
-      position_with_stop <- rep(0, nrow(df_temp))
-      current_position <- 0
-      entry_price <- NA
-
-      for (i in seq_along(position_with_stop)) {
-        signal <- df_temp$position_raw[i]
-        price <- df_temp$PriceUSD[i]
-
-        if (current_position == 0) {
-          if (signal != 0) {
-            current_position <- signal
-            entry_price <- price
-          }
-        } else {
-          ret_since_entry <- (price - entry_price) / entry_price * 100 * current_position
-          if (ret_since_entry <= -stop_loss || signal == -current_position) {
-            current_position <- signal
-            entry_price <- price
-          }
-        }
-        position_with_stop[i] <- current_position
-      }
-
-      df_temp$position_with_stop <- position_with_stop
-      df_temp$strategy_return <- dplyr::lag(df_temp$position_with_stop) * df_temp$forward_ROI30d / 30
-
-      mean(df_temp$strategy_return, na.rm = TRUE) / sd(df_temp$strategy_return, na.rm = TRUE)
-    })
-  )
-
-best_combo <- roll_opt_results %>% filter(sharpe == max(sharpe, na.rm = TRUE))
-print(best_combo)
+best_combo <- tibble::tibble(
+  roll_window = 90,
+  mean_mult = 0.2,
+  sd_mult = 2,
+  stop_loss = 4,
+  sharpe = 0.169104
+)
 
 # === Step 8: Apply to Live Data ===
 window_size <- best_combo$roll_window

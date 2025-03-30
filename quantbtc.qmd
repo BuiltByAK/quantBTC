@@ -6,145 +6,12 @@ editor: visual
 
 [Company Overview](https://rpubs.com/Aftikhar/PulsarPeak_Capital_Investment)
 
-# [Investment Strategy: Relative Value Volatility Capture (RVVC)](https://rpubs.com/Aftikhar/crypto_quant_strategy)
+# [Investment Strategy: Relative Value Volatility Capture (RVVC)](https://rpubs.com/Aftikhar/crypto_quant_strategy) 
 
-## Strategy Objective:
+If you want to see the full RVVC mental model, click on the link highlighted above.
 
-To generate alpha by identifying and trading mispricings in selected emerging cryptocurrencies relative to Bitcoin, using a quantitative model that incorporates relative value spreads, market sentiment, momentum factors, and other indicators as we identify applied across a diversified portfolio of qualifying assets.
-
-###  Phase 1: Asset Selection & Universe Definition
-
-**Goal:** Identify a pool of tradable emerging crypto assets suitable for the strategy.
-
-1.  **Market Capitalization:** Exclude top 20-30 assets (like BTC, ETH). Define a minimum market cap (e.g., \> \$50 Million) to ensure some level of establishment, but low enough to capture emerging opportunities.
-
-2.  **Liquidity:** Minimum average daily trading volume ( \> \$1 Million USD) across selected reputable exchanges. Sufficient order book depth to allow execution without excessive slippage for intended position sizes.
-
-3.  **Exchange Listing:** Traded on at least \[e.g., 2-3\] major exchanges with reliable API access and reasonable withdrawal/deposit processes.
-
-4.  **Data Availability:** Sufficient historical price data (at least \[e.g., 1-2 years\]) for both the asset and its pairing against Bitcoin (or easily calculable). Availability of volume and potentially on-chain data.
-
-5.  **Fundamental Screen (Qualitative Overlay):** Basic check for legitimacy – active development team, coherent whitepaper/documentation, active community, no obvious signs of being a scam or defunct project. This is a *filter*, not the primary driver.
-
-**Measurements & Monitoring:** Regularly screen the market based on these criteria. Maintain a dynamic "Eligible Universe" list. Track liquidity, volume, and exchange status continuously.
-
-### Phase 2: Core Model - Relative Value Spread Analysis
-
-**Concept:** Model the price relationship of a selected Altcoin relative to Bitcoin (BTC), assuming BTC represents the broader crypto market's systematic movement. Deviations from the typical relationship present potential trading opportunities.
-
-**Steps:**
-
-1.  **Spread Calculation:** Define the spread: `Spread = Altcoin Price (in USD) / Bitcoin Price (in USD)`. Alternatively, use the direct Altcoin/BTC pair price if reliably available (`Spread = Altcoin Price in BTC`). This normalizes the altcoin's price relative to the market benchmark.
-
-2.  **Distribution Modeling:**
-
-    -   Analyze the historical time series of the calculated spread.
-
-    -   Test for stationarity (e.g., using ADF test). If non-stationary, consider using returns or differences of the spread.
-
-    -   Recognize that financial returns, especially crypto, exhibit fat tails (leptokurtosis) and potential skewness. Standard Normal distribution is often inadequate.
-
-    -   **Fit a suitable distribution:**
-
-        -   **Parametric:** Student's t-distribution (captures fat tails), Generalized Pareto Distribution (GPD - often used in Extreme Value Theory to model tails explicitly), Stable Distribution. Estimate parameters using Maximum Likelihood Estimation (MLE) or similar methods.
-
-        -   **Non-Parametric:** Kernel Density Estimation (KDE). Provides flexibility but can be harder to interpret tail probabilities precisely.
-
-    -   **Purpose:** The fitted distribution provides a probabilistic description of the spread's typical behavior and defines "extreme" deviations (e.g., movement beyond the 95th or 5th percentile). This distribution serves as the **Baseline Indicator** for potential mean reversion or trend continuation in the relative valuation.
-
-### Phase 3: Signal Enhancement - Composite Indicator Overlay
-
-**Goal:** Increase the robustness of buy/sell signals by requiring confirmation from additional factors beyond just the spread's statistical deviation.
-
-**Indicators to Integrate:**
-
-1.  **Market Sentiment:**
-
-    -   **Indicator:** Crypto Fear & Greed Index (or similar aggregate sentiment measures).
-
-    -   **Application:** Look for confirmation between spread extremes and sentiment extremes. E.g., require "Extreme Fear" (\< 20) to confirm a buy signal when the spread hits a statistical low; require "Extreme Greed" (\> 80) to confirm a sell signal when the spread hits a statistical high.
-
-2.  **Momentum (of the Spread):**
-
-    -   **Indicator:** Apply momentum indicators like RSI (Relative Strength Index) or MACD (Moving Average Convergence Divergence) directly to the *spread time series*.
-
-    -   **Application:** Look for divergences (e.g., spread makes a new low, but RSI makes a higher low – potential bullish divergence confirming a buy signal) or confirmation (RSI crossing below 30 reinforces a buy signal).
-
-3.  **Volume (Confirmation):**
-
-    -   **Indicator:** Trading volume of the specific Altcoin/USD or Altcoin/BTC pair.
-
-    -   **Application:** Increased volume accompanying a move to a spread extreme can confirm the validity of the move. Look for volume spikes or above-average volume when the spread crosses key thresholds derived from the distribution. Volume Profile analysis on the spread chart could identify key support/resistance levels.
-
-4.  **Volatility (Regime Filter):**
-
-    -   **Indicator:** Historical Volatility (e.g., standard deviation of returns over a rolling window) of the spread or the underlying altcoin.
-
-    -   **Application:** The strategy might perform differently in high vs. low volatility regimes. Potentially adjust position sizing or signal thresholds based on the current volatility regime. For instance, require wider deviation thresholds during high volatility periods.
-
-**Signal Generation Logic (Example):**
-
--   **Potential Buy Signal:** Spread drops below the \[e.g., 5th or 10th\] percentile of its fitted distribution.
-
--   **Confirmed Buy Signal:** Potential Buy Signal occurs AND Fear & Greed Index is below \[e.g., 25\] AND Spread RSI shows bullish divergence or is below \[e.g., 30\] AND Volume is above its \[e.g., 20-day\] moving average.
-
--   **Potential Sell/Short Signal:** Spread rises above the \[e.g., 90th or 95th\] percentile of its fitted distribution.
-
--   **Confirmed Sell/Short Signal:** Potential Sell/Short Signal occurs AND Fear & Greed Index is above \[e.g., 75\] AND Spread RSI shows bearish divergence or is above \[e.g., 70\].
-
--   **Exit Logic:** Can be based on the spread returning to its mean/median, hitting a predefined profit target, or an invalidation signal (e.g., stop-loss based on adverse spread movement, or a fundamental change in the asset).
-
-### **Phase 4: Portfolio Construction & Management**
-
--   **Goal:** Apply the RVVC strategy across multiple qualifying assets simultaneously to achieve diversification and smoother returns.
-
--   **Considerations:**
-
-    1.  **Correlation:** Altcoin spreads vs. Bitcoin can still be correlated. Monitor the correlation matrix of the spreads of the assets in the portfolio. High correlation might dilute diversification benefits.
-
-    2.  **Capital Allocation:** Allocate capital across different opportunities. Methods:
-
-        -   *Equal Weighting:* Simplest, but ignores differences in signal strength or volatility.
-
-        -   *Risk Parity:* Allocate capital such that each position contributes equally to the overall portfolio's risk (requires estimating volatility/risk of each spread strategy). More complex but better risk balancing.
-
-        -   *Signal Strength Weighting:* Allocate more capital to signals with higher conviction (e.g., multiple indicators strongly confirming).
-
-    3.  **Dynamic Rebalancing:** Periodically rebalance the portfolio back to target allocations. Define frequency (e.g., weekly, monthly) or threshold-based rebalancing (when allocations drift significantly).
-
-    4.  **Overall Portfolio Risk:** Monitor aggregate portfolio risk metrics (VaR, CVaR, Drawdown) and adjust overall leverage or exposure based on market conditions or risk limits.
-
-### Phase 5: Integration with Other Asset Classes (Optional Enhancement)
-
-**Goal:** Further enhance diversification, manage overall portfolio volatility, or potentially generate additional alpha streams.
-
-**Potential Additions:**
-
-1.  **Stablecoins (Risk Management / Liquidity):** Holding a portion of the portfolio in high-quality stablecoins (USDC, USDT - monitor their risks too) acts as a buffer during market downturns ("dry powder") and provides liquidity for new opportunities or margin requirements. Allocation can be dynamic based on overall market risk signals.
-
-2.  **Bitcoin (Core Holding / Hedge):** While used as the benchmark, holding a core position in BTC could act as a partial hedge if altcoin spreads tend to compress (i.e., altcoins underperform BTC) during sharp market sell-offs. The strategy focuses on the *relative* value, but absolute P&L is impacted by BTC's price.
-
-3.  **Tokenized Real-World Assets (RWAs) or Thematic Baskets (Future Potential):** As the market matures, incorporating tokenized assets with lower correlation to the general crypto market (e.g., tokenized bonds, real estate, commodities) could significantly improve diversification. Requires careful vetting of RWA protocols and liquidity.
-
-4.  **Volatility Futures/Options (Advanced):** If expertise exists, trading volatility instruments (e.g., options on BTC/ETH, or potential future crypto VIX equivalents) could be used to hedge portfolio volatility or express views on market turbulence.
-
-**Integration Approach:** Manage these as separate sleeves within the overall portfolio, with capital allocated based on top-down risk assessment or macroeconomic views. Alternatively, signals from these other assets (e.g., a spike in traditional market volatility like VIX) could be incorporated as another input into the composite indicator for the RVVC strategy (e.g., reduce risk during cross-asset volatility spikes).
-
-### Phase 6: Backtesting & Refinement
-
--   Rigorous backtesting is crucial. Simulate the strategy over historical data, accounting for estimated transaction costs, slippage, and potential data biases.
-
-<!-- -->
-
--   Analyze performance metrics: Omega ratio, Sortino Ratio, Maximum Drawdown, Calmar Ratio, win rate, average profit/loss per trade.
-
-<!-- -->
-
--   Optimize parameters (distribution percentiles, indicator thresholds) carefully, avoiding overfitting (use walk-forward optimization or cross-validation).
-
-<!-- -->
-
--   Continuously monitor live performance against backtested expectations and adapt the model as market dynamics evolve.
+\
+\
 
 Systematic risk and idiosyncratic risks of crypto:
 
@@ -169,6 +36,176 @@ Possible things that can impact the price of crypto (specially BTC)
 
 1.  Consumer confidence and traditional market indices: lets correlate most important indices with cryptos
 2.  Energy consumption
+
+### ETH_BTC two regimes
+
+```{r packages used for this part of our project}
+library(quantmod)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(mixtools)
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+```
+
+```{r ETH_BTC two regimes_Data Collection}
+
+
+getSymbols(c("BTC-USD", "ETH-USD"), src = "yahoo", auto.assign = TRUE)
+btcp <- data.frame(data=index(`BTC-USD`), coredata(`BTC-USD`)) %>% transmute(date = data, BTC_price = BTC.USD.Adjusted, BTC_volume = BTC.USD.Volume)
+
+ethp <- data.frame(data=index(`ETH-USD`), coredata(`ETH-USD`)) %>% transmute(date = data, ETH_price = ETH.USD.Adjusted, ETH_volume = ETH.USD.Volume)
+
+eth_btc <- inner_join(btcp, ethp, by = "date") %>% transmute(date, ratio = ETH_price/BTC_price) %>% na.omit()
+
+any(is.na(eth_btc$ratio) | is.infinite(eth_btc$ratio) | eth_btc$ratio == 0)
+which(is.na(eth_btc$ratio) | is.infinite(eth_btc$ratio) | eth_btc$ratio == 0)
+
+graph_ratio <- ggplot(eth_btc, aes(x = ratio)) +
+  geom_histogram(aes(y = ..density..), bins = 150, fill = "lightblue", color = "black") +
+  geom_density(color = "red", size = 1) +
+  labs(title = "Histogram of ETH/BTC Price Ratio",
+       x = "ETH/BTC Ratio", y = "Density")
+
+simple_ratio <- ggplot(eth_btc, aes(x=date, y=ratio))+geom_line()
+
+
+simple_ratio
+graph_ratio
+```
+
+Above we see the ratio, and the distribution of the observation. It looks like camel's back with two likely normal distribution. Now lets test for normality.\
+\
+Now, lets test for normality. The dark line is the observed data and the red line is the expected or theoretical line of a normal distribution. S\
+Since the observation does not follow the theoretical line and there is deviation (since the quantiles of our data does not follow the QQline) we can conclude that our data is not normally distributed.
+
+```{r}
+qqnorm(log(eth_btc$ratio), main = "QQ Plot of log(ETH/BTC) Ratio")
+qqline(log(eth_btc$ratio), col = "red", lwd = 2)
+```
+
+```{r}
+mix_model <- normalmixEM(log(eth_btc$ratio), k = 2)
+summary(mix_model)
+plot(mix_model, which = 2)
+```
+
+\
+Given that it was looking like a bactrian camel's back I wonder if it has two normal distribution within the same data. Each representing a regime. And it seems we are right.
+
+We Used a Gaussian mixture model (from mixtools) to identify two regimes in the log-transformed ETH/BTC ratio. And assigned regimes based on posterior probabilities. We did not use k-mean distribution because it puts a hard clustering label on each data point, whereas GMM model assigns a softer clustering labels and tells how probable it is for a data point to be part of a particular cluster. Data points can have mix memberships. Since our two camel data clusters (as seen in the graph ratio above) merges in the middle GMM is a more suitable option.
+
+#### **Regime Summary Interpretation**
+
+Your model identifies **two distinct regimes** for the log-transformed ETH/BTC ratio:
+
+1.  **Regime 1 (49.2% probability)**
+
+    -   Mean (`μ₁`): **-3.499** (log ratio)
+
+    -   Volatility (`σ₁`): **0.278**
+
+    -   Implied ETH/BTC ratio: `exp(-3.499)` ≈ **0.030 BTC per ETH**
+
+    -   *Interpretation*: A "low ETH valuation" regime where ETH is relatively cheap compared to BTC.
+
+2.  **Regime 2 (50.8% probability)**
+
+    -   Mean (`μ₂`): **-2.719** (log ratio)
+
+    -   Volatility (`σ₂`): **0.155**
+
+    -   Implied ETH/BTC ratio: `exp(-2.719)` ≈ **0.066 BTC per ETH**
+
+    -   *Interpretation*: A "high ETH valuation" regime where ETH is relatively expensive compared to BTC.
+
+        **Regime Assignment**
+
+First, classify historical data into regimes using posterior probabilities from `mix_model$posterior`:
+
+```{r}
+# Assign regimes (prob > 0.5)
+eth_btc$regime <- ifelse(mix_model$posterior[,1] > 0.5, 1, 2)
+
+eth_btc <- eth_btc %>%
+  mutate(
+    z_score = case_when(
+      regime == 1 ~ (log(ratio) - (-3.499)) / 0.278,
+      regime == 2 ~ (log(ratio) - (-2.719)) / 0.155
+    )
+  )
+
+upper_mean_reversion_threshold <- 1.5
+lower_mean_reversion_threshold <- 1.5
+
+
+eth_btc <- eth_btc %>%
+  mutate(
+    signal = case_when(
+      z_score > upper_mean_reversion_threshold ~ "Short ETH/BTC (overvalued)",
+      z_score < lower_mean_reversion_threshold ~ "Long ETH/BTC (undervalued)",
+      TRUE ~ "Hold"
+    )
+  )
+```
+
+####  **Regime-Specific Z-Scores**
+
+Calculate how far the current ratio deviates from its regime’s mean (in standard deviations):
+
+```{r}
+# Load required libraries
+
+# Plot 1: ETH/BTC Ratio with Regimes and Signals
+plot_ratio <- ggplot(eth_btc, aes(x = date)) +
+  # Plot ETH/BTC ratio
+  geom_line(aes(y = ratio, color = as.factor(regime)), linewidth = 0.8) +
+  # Add trading signals
+  geom_point(data = subset(eth_btc, signal != "Hold"),
+             aes(y = ratio, shape = signal, color = as.factor(regime)),
+             size = 3, alpha = 0.8) +
+  # Custom colors and labels
+  scale_color_manual(values = c("1" = "#FF6B6B", "2" = "#4ECDC4"),
+                     name = "Regime") +
+  scale_shape_manual(values = c("Short ETH/BTC (overvalued)" = 6,
+                                "Long ETH/BTC (undervalued)" = 2)) +
+  labs(title = "ETH/BTC Ratio with Regimes and Trading Signals",
+       y = "ETH/BTC Ratio",
+       x = "Date") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Plot 2: Z-Scores with Thresholds
+plot_zscore <- ggplot(eth_btc, aes(x = date)) +
+  geom_line(aes(y = z_score, color = "Z-Score"), linewidth = 0.8) +
+  geom_hline(yintercept = c(-lower_mean_reversion_threshold, 
+                            upper_mean_reversion_threshold),
+             linetype = "dashed", color = "gray40") +
+  annotate("text", x = min(eth_btc$date), 
+           y = upper_mean_reversion_threshold + 0.1,
+           label = "Overvalued Threshold", hjust = 0, color = "gray40") +
+  annotate("text", x = min(eth_btc$date),
+           y = -lower_mean_reversion_threshold - 0.1,
+           label = "Undervalued Threshold", hjust = 0, color = "gray40") +
+  labs(title = "Z-Score with Mean Reversion Thresholds",
+       y = "Z-Score",
+       x = "Date") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# Combine both plots
+library(patchwork)
+combined_plot <- plot_ratio / plot_zscore + 
+  plot_layout(heights = c(2, 1))
+
+print(combined_plot)
+```
+
+Now that we have two regimes, for each regime we have a different statistical summary. And I used those to calculate the Z score of data within that regime. As a result we have the following data. Regime 2 is when ETH/BTC ratio is high compared to Regime 1. It means that in regime 2 ETH has higher value relative to BTC and in regime 1 its the opposite.
 
 BTC, ETH, XRP, BNB, SOL, DOGE, ADA, TRX, STETH, WBTC, TON, LINK, LEO, AVAX, XLM
 

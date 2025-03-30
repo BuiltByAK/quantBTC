@@ -52,6 +52,11 @@ library(scales)
 
 ```
 
+The entire ETH_BTC two regime is summarized in two functions
+
+1.  Data retrieval
+2.  Creating the chart
+
 ```{r}
 
 
@@ -99,6 +104,14 @@ Given that it was looking like a bactrian camel's back I wonder if it has two no
 
 We Used a Gaussian mixture model (from mixtools) to identify two regimes in the log-transformed ETH/BTC ratio. And assigned regimes based on posterior probabilities. We did not use k-mean distribution because it puts a hard clustering label on each data point, whereas GMM model assigns a softer clustering labels and tells how probable it is for a data point to be part of a particular cluster. Data points can have mix memberships. Since our two camel data clusters (as seen in the graph ratio above) merges in the middle GMM is a more suitable option.
 
+**Why GMM Works for ETH/BTC Ratio as compared to Markov Regime-switching model?**
+
+#### **Ratio-Specific Dynamics**
+
+-   The ETH/BTC ratio inherently oscillates between "ETH outperforming BTC" and "BTC outperforming ETH," creating two dominant regimes.
+
+-   GMM captures these scenarios by modeling the ratio’s distribution as a mixture of two Gaussians, each representing a regime (e.g., "ETH dominance" vs. "BTC dominance").
+
 #### **Regime Summary Interpretation**
 
 Your model identifies **two distinct regimes** for the log-transformed ETH/BTC ratio:
@@ -128,7 +141,7 @@ Your model identifies **two distinct regimes** for the log-transformed ETH/BTC r
 First, classify historical data into regimes using posterior probabilities from `mix_model$posterior`:
 
 ```{r}
-# Assign regimes (prob > 0.5)
+# Assign regimes (prob > 0.5) The first column of the posterior probability matrix from the GMM, which represents the probability that each observation belongs to Regime 1
 eth_btc$regime <- ifelse(mix_model$posterior[,1] > 0.5, 1, 2)
 
 eth_btc <- eth_btc %>%

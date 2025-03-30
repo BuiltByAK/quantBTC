@@ -37,13 +37,10 @@ p1 <- catalog_indexes()
 
 l <- get_index_levels(indexes = "CMBIWORK", start_time = "2020-01-01", end_time = Sys.Date() , frequency = "1d")
 
-p2 <- catalog_v2_market_liquidations()
-p3 <- get_market_openinterest()
-
 ```
 
 | Metric Name | Display Name | Category | Why It Matters |
-|--------------|--------------|--------------|-------------------------------|
+|---------------|---------------|---------------|---------------------------|
 | AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
 | TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
 | CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
@@ -271,11 +268,6 @@ formula_all <- as.formula(
   FlowOutExUSD + fng_value
 )
 
-df_no_outlier <- df_with_fng[-influential, ]
-model_reduced <- lm(formula_all, data = df_no_outlier)
-summary(model_reduced)
-print(vif(model_reduced))
-autoplot(model_reduced)
 ```
 
 ```{r}
@@ -287,4 +279,314 @@ df_with_fng1 <- df_with_fng %>%
     cooks.distance(lm(formula_all, data = df_with_fng))),
     outlier_flag = cooks_d > (4 / n())
   )
+
+df_with_fng2 <- df_with_fng %>%
+  mutate(predicted_roi30d = predict(model_all1, newdata = df_with_fng))
+
+ggplot(df_with_fng2, aes(x = ROI30d, y = predicted_roi30d)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(color = "blue") +
+  labs(title = "Actual vs Predicted ROI30d", x = "actual", y = "predicted")
+```
+
+```{r}
+
+ggplot(df_with_fng2, aes(x = date)) +
+  geom_line(aes(y = ROI30d, color = "Actual"), size = 1) +
+  geom_line(aes(y = predicted_roi30d, color = "Predicted"), size = 1, linetype = "dashed") +
+  labs(title = "Actual vs Predicted ROI30d Over Time",
+       x = "Date",
+       y = "ROI30d (%)",
+       color = "Legend") +
+  scale_color_manual(values = c("Actual" = "black", "Predicted" = "blue")) +
+  theme_minimal()
+
+```
+
+```{r}
+
+df_with_forecast <- df_with_fng1 %>%
+  mutate(forward_ROI30d = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD)*100) %>%
+  drop_na()
+
+model_forecast <- lm(forward_ROI30d ~ SplyFF + IssContPctAnn + FeeTotUSD + SplyAct1yr + VelCur1yr + FlowOutExUSD + fng_value,
+                     data = df_with_forecast)
+
+summary(model_forecast)
+
+autoplot(model_forecast)
+vif(model_forecast)
+```
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(lubridate)
+library(car)          # For VIF
+library(MASS)         # For stepAIC
+library(broom)        # For model summaries
+
+# --- Assume df_with_forecast already exists and is the main working dataset ---
+df_with_forecast <- df_with_forecast  # just reinforcing for clarity
+
+# --- Optional: Convert fng_class to ordered factor if needed ---
+# df_with_forecast <- df_with_forecast %>% mutate(fng_class = factor(fng_class, ordered = TRUE))
+
+# --- Full Model Formula ---
+formula_all <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  SplyAct1yr + SplyFF + IssContPctAnn + FeeTotUSD + VelCur1yr + FlowOutExUSD +
+  fng_value + btc_dominance
+
+# --- Fit Full Model ---
+model_all <- lm(formula = formula_all, data = df_with_forecast)
+
+# --- Check VIFs ---
+vif_vals <- vif(model_all)
+print(round(vif_vals, 2))
+
+# --- Flag Influential Outliers via Cook's Distance ---
+cooks_d <- cooks.distance(model_all)
+threshold <- 4 / nrow(df_with_forecast)
+
+df_with_forecast <- df_with_forecast %>%
+  mutate(cooks_d = cooks_d,
+         flagged_outlier = cooks_d > threshold)
+
+# --- Stepwise AIC Model Selection ---
+step_model <- stepAIC(model_all, direction = "both", trace = FALSE)
+summary(step_model)
+
+# --- Exclude Outliers & Fit Final Model ---
+df_no_outlier <- df_with_forecast %>% filter(!flagged_outlier)
+step_model_no_outlier <- lm(formula = formula(step_model), data = df_no_outlier)
+summary(step_model_no_outlier)
+
+# --- Final VIFs ---
+vif(step_model_no_outlier)
+
+# --- Forecast (Prediction on full dataset) ---
+df_with_forecast <- df_with_forecast %>%
+  mutate(predicted_roi30d = predict(step_model_no_outlier, newdata = df_with_forecast))
+
+# --- Plot Actual vs Predicted ---
+ggplot(df_with_forecast, aes(x = ROI30d, y = predicted_roi30d)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(title = "Predicted vs Actual ROI30d", x = "Actual ROI30d", y = "Predicted ROI30d") +
+  theme_minimal()
+
+
+```
+
+```{r}
+formula_expanded <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  SplyAct1yr + SplyFF + IssContPctAnn + FeeTotUSD +
+  CapMVRVCur + HashRate +
+  RevUSD + VelCur1yr +
+  fng_value + btc_dominance
+
+# Then run stepAIC again
+model_expanded <- lm(formula = formula_expanded, data = df_with_forecast)
+step_model_new <- stepAIC(model_expanded, direction = "both", trace = FALSE)
+summary(step_model_new)
+vif(step_model_new)
+```
+
+```{r}
+base_formula <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  FeeTotUSD + HashRate + RevUSD + VelCur1yr +
+  fng_value + btc_dominance
+
+# List of remaining variables to test
+additional_vars <- c(
+  "SplyAct180d", "SplyAdrBalNtv1K", "SplyCur", "SER", 
+  "FlowInExUSD", "NVTAdj", "NVTAdj90", "CapRealUSD",
+  "CapMrktCurUSD", "DiffMean", "FeeMeanUSD", "PriceUSD",
+  "ROI1yr"
+)
+
+# Store results
+library(broom)
+
+results <- list()
+
+for (var in additional_vars) {
+  formula_test <- as.formula(paste("forward_ROI30d ~", paste(c(
+    "AdrActCnt", "TxCnt", "TxTfrValAdjUSD",
+    "FeeTotUSD", "HashRate", "RevUSD", "VelCur1yr",
+    "fng_value", "btc_dominance", var
+  ), collapse = " + ")))
+
+  model_test <- lm(formula_test, data = df_with_forecast)
+  summary_info <- glance(model_test)  # gets R2, adj R2, AIC, etc.
+  summary_info$added_variable <- var
+  results[[var]] <- summary_info
+}
+
+# Combine all results into a dataframe
+library(dplyr)
+results_df <- bind_rows(results)
+results_df <- results_df %>% arrange(desc(adj.r.squared))
+
+
+```
+
+```{r}
+library(car)  # for vif()
+
+# Assuming `results_df` and `step_model_no_outlier` already exist
+# and you have `df_with_forecast` as your dataset
+
+# Initialize an empty vector to store VIFs
+vif_averages <- c()
+
+# Loop through each added variable
+for (var in results_df$added_variable) {
+  # Create new formula by updating the original stepwise model's formula
+  updated_formula <- as.formula(
+    paste("forward_ROI30d ~", paste(c(all.vars(formula(step_model_no_outlier))[-1], var), collapse = " + "))
+  )
+  
+  # Fit the model
+  temp_model <- lm(updated_formula, data = df_with_forecast)
+  
+  # Calculate and store average VIF
+  vif_avg <- mean(vif(temp_model))
+  vif_averages <- c(vif_averages, vif_avg)
+}
+
+# Add to results_df
+results_df$avg_vif <- vif_averages
+
+# View
+View(results_df)
+
+```
+
+```{r}
+formula_enhanced <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  FeeTotUSD + RevUSD + VelCur1yr +
+  fng_value + btc_dominance + SplyAdrBalNtv1K + SplyFF + SplyAct180d
+
+model_enhanced <- lm(formula = formula_enhanced, data = df_with_forecast)
+
+summary(model_enhanced)
+vif(model_enhanced)
+
+```
+
+# **Final Model Variables?**
+
+| Type | Variable | Meaning |
+|------|----------|---------|
+
+|  |  |  |
+|------------------------|------------------------|------------------------|
+| **Network Activity** | `AdrActCnt`, `TxCnt`, `TxTfrValAdjUSD` | Daily on-chain usage and volume |
+
+|                      |                       |                                |
+|---------------------|----------------------|------------------------------|
+| **Mining & Revenue** | `RevUSD`, `FeeTotUSD` | Miner revenue and fee dynamics |
+
+|              |             |                                |
+|--------------|-------------|--------------------------------|
+| **Velocity** | `VelCur1yr` | Turnover of supply over a year |
+
+|                |             |                    |
+|----------------|-------------|--------------------|
+| **Behavioral** | `fng_value` | Fear & Greed Index |
+
+|               |                 |                             |
+|---------------|-----------------|-----------------------------|
+| **Dominance** | `btc_dominance` | Market cap dominance of BTC |
+
+|  |  |  |
+|------------------------|------------------------|------------------------|
+| **Supply Concentration** | `SplyAdrBalNtv1K`, `SplyFF`, `SplyAct180d` | Whale wallets, free float, and recent supply activity |
+
+```{r}
+
+df_with_forecast$predicted_roi30d <- predict(model_enhanced, newdata = df_with_forecast)
+
+# 2. Time Series Plot: Actual vs Predicted ROI30d
+ggplot(df_with_forecast, aes(x = date)) +
+  geom_line(aes(y = forward_ROI30d, color = "Actual"), linewidth = 1) +
+  geom_line(aes(y = predicted_roi30d, color = "Predicted"), linewidth = 1, linetype = "dashed") +
+  labs(title = "Actual vs Predicted ROI30d Over Time",
+       x = "Date", y = "ROI30d (%)", color = "Legend") +
+  scale_color_manual(values = c("Actual" = "black", "Predicted" = "blue")) +
+  theme_minimal()
+
+# 3. Scatter Plot: Actual vs Predicted ROI30d
+ggplot(df_with_forecast, aes(x = ROI30d, y = predicted_roi30d)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(title = "Actual vs Predicted ROI30d",
+       x = "Actual ROI30d", y = "Predicted ROI30d") +
+  theme_minimal()
+
+```
+
+```{r}
+library(RTL)
+library(xts)
+
+
+df_with_forecast <- df_with_forecast %>%
+  mutate(residuals = resid(model_enhanced))
+
+garch_input <- df_with_forecast %>%
+  dplyr::select(date, residuals) %>%
+  rename(series = residuals)
+
+garch_output <- RTL::garch(x = garch_input, out = "data")
+
+garch_df <- garch_output %>%
+  data.frame(date = index(.), garch_vol = coredata(.)) %>%
+  as_tibble()
+
+df_with_forecast3 <- df_with_forecast %>%
+  left_join(garch_df, by = "date")
+
+
+  
+```
+
+```{r}
+formula_enhanced <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  FeeTotUSD + RevUSD + VelCur1yr +
+  fng_value + btc_dominance + SplyAdrBalNtv1K + SplyFF + garch_vol.garch
+
+model_enhanced <- lm(formula = formula_enhanced, data = df_with_forecast3)
+
+summary(model_enhanced)
+vif(model_enhanced)
+```
+
+```{r}
+# Residuals vs Predicted
+df_with_forecast3 <- df_with_forecast3 %>%
+  mutate(
+    predicted_roi = predict(model_enhanced, newdata = .),
+    residuals = forward_ROI30d - predicted_roi
+  )
+
+
+ggplot(df_with_forecast3, aes(x = date)) +
+  geom_line(aes(y = forward_ROI30d, color = "Actual"), size = 0.5) +
+  geom_line(aes(y = predicted_roi, color = "Predicted"), size = 0.5, linetype = "dashed") +
+  labs(title = "Actual vs Predicted ROI30d Over Time",
+       y = "ROI30d (%)", x = "Date", color = "Legend") +
+  scale_color_manual(values = c("Actual" = "black", "Predicted" = "blue")) +
+  theme_minimal()
+
+ggplot(df_with_forecast3, aes(x = forward_ROI30d, y = predicted_roi)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(title = "Actual vs Predicted ROI30d",
+       x = "Actual ROI30d", y = "Predicted ROI30d") +
+  theme_minimal()
+
+
+
 ```

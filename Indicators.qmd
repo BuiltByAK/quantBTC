@@ -1,0 +1,290 @@
+---
+title: "Indicators"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+library(coinmetrics)
+library(tidyverse)
+
+p <- catalog_asset_metrics()
+p <-  p %>% group_by(assets) %>%
+  filter(assets == "btc")
+
+p1 <- catalog_indexes()
+
+l <- get_index_levels(indexes = "CMBIWORK", start_time = "2020-01-01", end_time = Sys.Date() , frequency = "1d")
+
+p2 <- catalog_v2_market_liquidations()
+p3 <- get_market_openinterest()
+
+```
+
+| Metric Name | Display Name | Category | Why It Matters |
+|--------------|--------------|--------------|-------------------------------|
+| AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
+| TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
+| CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
+| NVTAdj | NVT | Economics | Crypto’s P/E ratio; high = overvalued, low = undervalued, price signals. |
+| SplyAct1yr | 1 Year Active Supply | Supply | High active supply = greater utility/liquidity; shows coin movement. |
+| FlowInExUSD | Exchange Deposits (USD) | Exchange | High inflow = sell pressure; useful for spotting potential short-term dips. |
+| FlowOutExUSD | Exchange Withdrawals (USD) | Exchange | High outflow = accumulation; often precedes upward price movement. |
+| CapRealUSD | Realized Market Cap (USD) | Market | Helps understand market cost basis; compare to cap for investor sentiment. |
+| ROI30d / ROI1yr | ROI, 30 Days / 1 Year | Market | Shows performance momentum; useful for trend continuation analysis. |
+| SplyCur | Current Supply | Supply | Needed to evaluate scarcity; combine with inflation metrics. |
+| IssContPctAnn | Annual Inflation Rate | Supply | Annual inflation impacts tokenomics; lower inflation = more bullish. |
+| HashRate / DiffMean | Mean Hash Rate / Mean Difficulty | Mining | Indicates miner confidence and network security; often bullish. |
+
+```{r}
+library(coinmetrics)
+library(tidyverse)
+library(lubridate)
+library(httr)
+library(jsonlite)
+library(car)
+library(crypto2)
+
+# Define date range
+start_date <- "20130429"
+end_date <- format(Sys.Date(), "%Y%m%d")
+
+# Pull daily global market data
+global_crypto_data <- crypto_global_quotes(
+  which = "historical",
+  start_date = start_date,
+  end_date = end_date,
+  interval = "daily",
+  quote = TRUE,         # get full price/market data
+  convert = "USD",
+  requestLimit = 2200,  # max limit
+  sleep = 1             # give it breathing room to avoid throttling
+)
+
+btc_dom_data <- global_crypto_data %>% 
+  mutate(time = as.Date(timestamp)) %>%
+  select(time, btc_dominance)
+
+
+# Define your metric list for BTC
+btc_metrics <- c(
+  # ==== NETWORK ACTIVITY ====
+  "AdrActCnt",              # Active addresses count — Fundamental
+  "TxCnt",                  # Total number of transactions per day — Fundamental
+  "TxTfrValAdjUSD",         # Adjusted transfer volume in USD — Fundamental
+  "SplyAct1yr",             # Supply active in the past 1 year — Fundamental
+  "SplyAct180d",            # Supply active in past 180 days — Fundamental
+  "SplyAdrBalNtv1K",        # Addresses holding ≥ 1,000 BTC — Fundamental
+
+  # ==== SUPPLY & DISTRIBUTION ====
+  "SplyCur",                # Current supply in circulation — Fundamental
+  "SplyFF",                 # Free float supply — Fundamental
+  "IssContPctAnn",          # Annual inflation rate (new issuance %) — Fundamental
+  "SER",                    # Supply Equality Ratio — Fundamental
+
+  # ==== EXCHANGE FLOWS ====
+  "FlowInExUSD",            # USD inflow into exchanges (deposits) — Behavioral
+  "FlowOutExUSD",           # USD outflow from exchanges (withdrawals) — Behavioral
+
+  # ==== VALUATION METRICS ====
+  "CapMVRVCur",             # MVRV (Market Cap / Realized Cap) — Valuation
+  "NVTAdj",                 # NVT (adj. Network Value / Tx Volume) — Valuation
+  "NVTAdj90",               # 90d Moving Avg of NVT — Valuation
+  "CapRealUSD",             # Realized Cap in USD — Valuation
+  "CapMrktCurUSD",          # Market Cap using current supply — Valuation
+
+  # ==== MINING & FEES ====
+  "HashRate",               # Mean network hash rate — Fundamental
+  "DiffMean",               # Average difficulty (mining) — Fundamental
+  "RevUSD",                 # Miner revenue in USD — Fundamental
+  "FeeTotUSD",              # Total network transaction fees in USD — Fundamental
+  "FeeMeanUSD",             # Average transaction fee (USD) — Fundamental
+
+  # ==== MARKET PERFORMANCE ====
+  "PriceUSD",               # BTC price in USD — Market
+  "ROI30d",                 # Return on investment over 30 days — Market
+  "ROI1yr",                 # Return on investment over 1 year — Market
+
+  # ==== OTHER ECONOMIC METRICS ====
+  "VelCur1yr"              # Velocity = Tx Volume / Supply (1 Year) — Valuation/Economic
+
+)
+
+
+# Pull CoinMetrics data
+df <- get_asset_metrics(
+  assets = "btc",
+  metrics = btc_metrics,
+  start_time = "2013-04-29",
+  frequency = "1d"
+)
+
+df_clean_full <- df %>%
+  left_join(btc_dom_data, by = "time")
+
+# Clean and process BTC data (main 2014 dataset onward)
+df_clean_full <- df_clean_full %>%
+  arrange(time) %>%
+  mutate(
+    daily_return = PriceUSD / lag(PriceUSD) - 1,
+    date = as.Date(time)
+  ) %>%
+  drop_na(daily_return) %>%
+  select(-time) %>%
+  select(date, asset, PriceUSD, daily_return, ROI30d, btc_dominance, everything())
+
+
+
+# --- Get Fear and Greed Index ---
+url <- "https://api.alternative.me/fng/?limit=0&format=json"
+fng_data <- fromJSON(content(GET(url), "text", encoding = "UTF-8"))
+
+fng <- fng_data$data %>%
+  as_tibble() %>% select(timestamp, value, value_classification)
+
+fng <- fng %>%
+  mutate(date = as.Date(as.POSIXct(as.numeric(fng$timestamp), origin = "1970-01-01", tz = "UTC")),
+         fng_value = as.numeric(value),
+         fng_class = value_classification)
+
+fng <- fng %>% select(-timestamp, -value, -value_classification) %>% arrange(date) 
+
+# Merge into CoinMetrics data
+df_with_fng <- df_clean_full %>%
+  left_join(fng, by = "date") %>%
+  drop_na() %>%
+  select(date, asset, PriceUSD, daily_return, ROI30d, fng_value, fng_class, everything())
+
+
+```
+
+```{r}
+# Load required package
+library(car)
+
+# --- Run regression + VIF function ---
+run_group_model <- function(df, dep_var, group_vars, group_name) {
+  # Construct formula dynamically
+  formula <- as.formula(paste(dep_var, "~", paste(group_vars, collapse = " + ")))
+  
+  # Run model
+  model <- lm(formula, data = df)
+  
+  cat("\n\n==========", toupper(group_name), "MODEL ==========\n")
+  print(summary(model))
+  
+  # Calculate VIF
+  cat("\n--- VIFs ---\n")
+  print(vif(model))
+  
+  return(model)
+}
+
+df_with_fng <- df_with_fng %>%
+  mutate(fng_class = factor(fng_class,
+                            levels = c("Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"),
+                            ordered = TRUE)) 
+
+# --- Define variable groups ---
+fundamentals_list <- c(
+  "SplyFF", "IssContPctAnn", "FeeTotUSD", "btc_dominance", "SplyAct1yr"
+)
+
+valuation_list <- c(
+  "VelCur1yr"
+)
+
+behavioral_list <- c(
+  "FlowOutExUSD", "fng_value"
+)
+
+market_perf_list <- c(
+  "ROI30d", "ROI1yr"
+)
+
+# --- Run regressions per group (daily return)---
+#model_fund <- run_group_model(df_with_fng, "daily_return", fundamentals_list, "Fundamentals")
+#model_val  <- run_group_model(df_with_fng, "daily_return", valuation_list, "Valuation")
+#model_beh  <- run_group_model(df_with_fng, "daily_return", behavioral_list, "Behavioral")
+#model_perf <- run_group_model(df_with_fng, "daily_return", market_perf_list, "Market Performance")
+
+# --- Run full regression with ALL predictors ---
+#all_vars <- c(fundamentals_list, valuation_list, behavioral_list, market_perf_list)
+#model_all <- run_group_model(df_with_fng, "daily_return", all_vars, "All Combined")
+
+#--- Run Regressions per group (ROI30d) ---
+#model_fund1 <- run_group_model(df_with_fng, "ROI30d", fundamentals_list, "Fundamentals")
+#model_val1  <- run_group_model(df_with_fng, "ROI30d", valuation_list, "Valuation")
+#model_beh1  <- run_group_model(df_with_fng, "ROI30d", behavioral_list, "Behavioral")
+
+#-- Full regression with ALL predictors ---
+all_vars <- c(fundamentals_list, valuation_list, behavioral_list)
+model_all1 <- run_group_model(df_with_fng, "ROI30d", all_vars, "All Combined")
+
+
+```
+
+```{r}
+library(ggfortify)
+
+autoplot(model_all1)
+```
+
+```{r}
+
+plot(cooks.distance(model_all1))
+
+cooksD <- cooks.distance(model_all1)
+threshold <- 4 / nrow(df_with_fng) 
+
+
+influential <- which(cooksD > (4/ nrow(df_with_fng)))
+df_with_fng[influential, ]
+
+```
+
+```{r}
+formula_all <- as.formula(
+  ROI30d ~ SplyFF + IssContPctAnn + FeeTotUSD +
+  SplyAct1yr + VelCur1yr +
+  FlowOutExUSD + fng_value
+)
+
+df_no_outlier <- df_with_fng[-influential, ]
+model_reduced <- lm(formula_all, data = df_no_outlier)
+summary(model_reduced)
+print(vif(model_reduced))
+autoplot(model_reduced)
+```
+
+```{r}
+
+df_with_fng1 <- df_with_fng %>%
+  mutate(
+    cooks_d = NA_real_,
+    cooks_d = replace(cooks_d, as.numeric(names(cooks.distance(lm(formula_all, data = df_with_fng)))),
+    cooks.distance(lm(formula_all, data = df_with_fng))),
+    outlier_flag = cooks_d > (4 / n())
+  )
+```

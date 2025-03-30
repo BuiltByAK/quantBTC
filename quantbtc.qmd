@@ -39,7 +39,7 @@ Possible things that can impact the price of crypto (specially BTC)
 
 ### ETH_BTC two regimes
 
-```{r packages used for this part of our project}
+```{r}
 library(quantmod)
 library(magrittr)
 library(dplyr)
@@ -52,7 +52,7 @@ library(scales)
 
 ```
 
-```{r ETH_BTC two regimes_Data Collection}
+```{r}
 
 
 getSymbols(c("BTC-USD", "ETH-USD"), src = "yahoo", auto.assign = TRUE)

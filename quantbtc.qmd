@@ -6,7 +6,7 @@ editor: visual
 
 [Company Overview](https://rpubs.com/Aftikhar/PulsarPeak_Capital_Investment)
 
-# [Investment Strategy: Relative Value Volatility Capture (RVVC)](https://rpubs.com/Aftikhar/crypto_quant_strategy) 
+# [Investment Strategy: Relative Value Volatility Capture (RVVC)](https://rpubs.com/Aftikhar/crypto_quant_strategy)
 
 If you want to see the full RVVC mental model, click on the link highlighted above.
 
@@ -153,7 +153,7 @@ eth_btc <- eth_btc %>%
   )
 ```
 
-####  **Regime-Specific Z-Scores**
+#### **Regime-Specific Z-Scores**
 
 Calculate how far the current ratio deviates from its regime’s mean (in standard deviations):
 

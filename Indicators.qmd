@@ -39,20 +39,33 @@ l <- get_index_levels(indexes = "CMBIWORK", start_time = "2020-01-01", end_time 
 
 ```
 
-| Metric Name | Display Name | Category | Why It Matters |
-|---------------|---------------|---------------|---------------------------|
-| AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
-| TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
-| CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
-| NVTAdj | NVT | Economics | Crypto’s P/E ratio; high = overvalued, low = undervalued, price signals. |
-| SplyAct1yr | 1 Year Active Supply | Supply | High active supply = greater utility/liquidity; shows coin movement. |
-| FlowInExUSD | Exchange Deposits (USD) | Exchange | High inflow = sell pressure; useful for spotting potential short-term dips. |
-| FlowOutExUSD | Exchange Withdrawals (USD) | Exchange | High outflow = accumulation; often precedes upward price movement. |
-| CapRealUSD | Realized Market Cap (USD) | Market | Helps understand market cost basis; compare to cap for investor sentiment. |
-| ROI30d / ROI1yr | ROI, 30 Days / 1 Year | Market | Shows performance momentum; useful for trend continuation analysis. |
-| SplyCur | Current Supply | Supply | Needed to evaluate scarcity; combine with inflation metrics. |
-| IssContPctAnn | Annual Inflation Rate | Supply | Annual inflation impacts tokenomics; lower inflation = more bullish. |
-| HashRate / DiffMean | Mean Hash Rate / Mean Difficulty | Mining | Indicates miner confidence and network security; often bullish. |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| Metric Name         | Display Name                     | Category     | Why It Matters                                                                 |
++=====================+==================================+==============+================================================================================+
+| AdrActCnt           | Active Addr Cnt                  | Addresses    | Measures user adoption; rising activity suggests increasing demand and usage.  |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| TxTfrValAdjUSD      | Xfer'd Val, Adj (USD)            | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| CapMVRVCur          | MVRV (Market Cap / Realized Cap) | Market       | Helps identify undervalued (\<1) or overvalued (\>3) conditions.               |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| NVTAdj              | NVT                              | Economics    | Crypto’s P/E ratio; high = overvalued, low = undervalued, price signals.       |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| SplyAct1yr          | 1 Year Active Supply             | Supply       | High active supply = greater utility/liquidity; shows coin movement.           |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| FlowInExUSD         | Exchange Deposits (USD)          | Exchange     | High inflow = sell pressure; useful for spotting potential short-term dips.    |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| FlowOutExUSD        | Exchange Withdrawals (USD)       | Exchange     | High outflow = accumulation; often precedes upward price movement.             |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| CapRealUSD          | Realized Market Cap (USD)        | Market       | Helps understand market cost basis; compare to cap for investor sentiment.     |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| ROI30d / ROI1yr     | ROI, 30 Days / 1 Year            | Market       | Shows performance momentum; useful for trend continuation analysis.            |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| SplyCur             | Current Supply                   | Supply       | Needed to evaluate scarcity; combine with inflation metrics.                   |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| IssContPctAnn       | Annual Inflation Rate            | Supply       | Annual inflation impacts tokenomics; lower inflation = more bullish.           |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| HashRate / DiffMean | Mean Hash Rate / Mean Difficulty | Mining       | Indicates miner confidence and network security; often bullish.                |
++---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
 
 ```{r}
 library(coinmetrics)
@@ -480,13 +493,13 @@ vif(model_enhanced)
 | Type | Variable | Meaning |
 |------|----------|---------|
 
-|  |  |  |
-|------------------------|------------------------|------------------------|
++----------------------+----------------------------------------+---------------------------------+
 | **Network Activity** | `AdrActCnt`, `TxCnt`, `TxTfrValAdjUSD` | Daily on-chain usage and volume |
++----------------------+----------------------------------------+---------------------------------+
 
-|                      |                       |                                |
-|---------------------|----------------------|------------------------------|
++----------------------+-----------------------+--------------------------------+
 | **Mining & Revenue** | `RevUSD`, `FeeTotUSD` | Miner revenue and fee dynamics |
++----------------------+-----------------------+--------------------------------+
 
 |              |             |                                |
 |--------------|-------------|--------------------------------|
@@ -500,9 +513,9 @@ vif(model_enhanced)
 |---------------|-----------------|-----------------------------|
 | **Dominance** | `btc_dominance` | Market cap dominance of BTC |
 
-|  |  |  |
-|------------------------|------------------------|------------------------|
++--------------------------+--------------------------------------------+-------------------------------------------------------+
 | **Supply Concentration** | `SplyAdrBalNtv1K`, `SplyFF`, `SplyAct180d` | Whale wallets, free float, and recent supply activity |
++--------------------------+--------------------------------------------+-------------------------------------------------------+
 
 ```{r}
 
@@ -794,139 +807,230 @@ ggplotly(strategy)
 ```
 
 ```{r}
-formula_enhanced <- forward_ROI30d ~ AdrActCnt + TxCnt +
-  FeeTotUSD + RevUSD + btc_dominance + SplyAdrBalNtv1K
+# Load required libraries
+library(slider)
+library(purrr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
 
-formula_enhanced1 <- forward_ROI30d ~ AdrActCnt + TxCnt +
-  FeeTotUSD + RevUSD + btc_dominance + SplyAdrBalNtv1K + garch
+# === Step 1: Formulas ===
+formula_enhanced <- forward_ROI30d ~ AdrActCnt + TxCnt + FeeTotUSD + RevUSD + btc_dominance + SplyAdrBalNtv1K
+formula_enhanced1 <- update(formula_enhanced, . ~ . + garch)
 
+# === Step 2: Prepare Data ===
 df_final <- df_clean_full %>%
   mutate(
     forward_ROI30d = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD) * 100,
-    daily_return = (PriceUSD / lag(PriceUSD) - 1) * 100) %>%
-  drop_na()
-
-df_final <- df_final %>% dplyr::select(
+    daily_return = (PriceUSD / lag(PriceUSD) - 1) * 100
+  ) %>%
+  drop_na() %>%
+  dplyr::select(
     date, PriceUSD, forward_ROI30d, daily_return,
     AdrActCnt, TxCnt, TxTfrValAdjUSD, FeeTotUSD, RevUSD,
     VelCur1yr, btc_dominance, SplyAdrBalNtv1K
   )
 
+# === Step 3: Training Split ===
 df_final_training <- df_final %>% filter(date > "2016-12-31" & date < "2023-01-01")
 
-training_model <- df_final_training %>% lm(formula = formula_enhanced)
-#summary(training_model) 
-#vif(training_model)
+# === Step 4: Initial Linear Model ===
+training_model <- lm(formula = formula_enhanced, data = df_final_training)
+df_final_training <- df_final_training %>% mutate(residuals = resid(training_model))
 
-df_final_training <- df_final_training %>%
-  mutate(residuals = resid(training_model))
-
-garch_input_final_training <- df_final_training %>%
-  select(date, residuals) %>%
-  rename(series = residuals)
-
+# === Step 5: GARCH on residuals ===
+garch_input_final_training <- df_final_training %>% select(date, residuals) %>% rename(series = residuals)
 garch_output_final_training <- RTL::garch(x = garch_input_final_training, out = "data")
+garch_df <- garch_output_final_training %>% data.frame(date = index(.), garch = coredata(.)) %>% as_tibble()
+df_final_training <- df_final_training %>% left_join(garch_df, by = "date")
 
-garch_df <- garch_output_final_training %>%
-  data.frame(date = index(.), garch_vol_resid = coredata(.)) %>%
-  as_tibble()
+# === Step 6: Retrain with GARCH ===
+training_model_garch <- lm(formula = formula_enhanced1, data = df_final_training)
 
-df_final_training <- df_final_training %>%
-  left_join(garch_df, by = "date")
-
-training_model_garch <- df_final_training %>% lm(formula = formula_enhanced1)
-#summary(training_model_garch)
-#vif(training_model_garch)
-
-library(slider)
-
-# === STEP 1: Define your ranges ===
-roll_window <- 90  # Keep window size fixed (or loop over this too)
+# === Step 7: Optimization of Rolling Window, Thresholds, and Stop Loss ===
+roll_windows <- seq(30, 180, by = 15)
 mean_multipliers <- seq(0.2, 1.0, by = 0.1)
 sd_multipliers <- seq(0.5, 2.0, by = 0.1)
+stop_losses <- seq(2, 10, by = 1)
 
-# === STEP 2: Grid search for best multiplier combo ===
-roll_opt_results <- expand_grid(mean_mult = mean_multipliers,
-                                sd_mult = sd_multipliers) %>%
+roll_opt_results <- expand_grid(
+  roll_window = roll_windows,
+  mean_mult = mean_multipliers,
+  sd_mult = sd_multipliers,
+  stop_loss = stop_losses
+) %>%
   mutate(
-    sharpe = pmap_dbl(list(mean_mult, sd_mult), function(mean_mult, sd_mult) {
+    sharpe = pmap_dbl(list(roll_window, mean_mult, sd_mult, stop_loss), function(window, mean_mult, sd_mult, stop_loss) {
       df_temp <- df_final_training %>%
         mutate(
           expected_sharpe = predict(training_model, newdata = .) / garch,
-          roll_mean = slide_dbl(expected_sharpe, mean, .before = roll_window, .complete = TRUE),
-          roll_sd   = slide_dbl(expected_sharpe, sd,   .before = roll_window, .complete = TRUE),
+          roll_mean = slide_dbl(expected_sharpe, mean, .before = window, .complete = TRUE),
+          roll_sd   = slide_dbl(expected_sharpe, sd, .before = window, .complete = TRUE),
           dynamic_long_thresh = roll_mean + mean_mult * roll_sd,
           dynamic_short_thresh = roll_mean - sd_mult * roll_sd,
-          position = case_when(
+          position_raw = case_when(
             expected_sharpe > dynamic_long_thresh ~ 1,
             expected_sharpe < dynamic_short_thresh ~ -1,
             TRUE ~ 0
-          ),
-          strategy_return = lag(position) * forward_ROI30d / 30
+          )
         )
 
-      # Return Sharpe Ratio
-      mean(df_temp$strategy_return, na.rm = TRUE) /
-        sd(df_temp$strategy_return, na.rm = TRUE)
+      # Simulate position with stop loss and re-entry allowed
+      position_with_stop <- rep(0, nrow(df_temp))
+      current_position <- 0
+      entry_price <- NA
+
+      for (i in seq_along(position_with_stop)) {
+        signal <- df_temp$position_raw[i]
+        price <- df_temp$PriceUSD[i]
+
+        if (current_position == 0) {
+          if (signal != 0) {
+            current_position <- signal
+            entry_price <- price
+          }
+        } else {
+          ret_since_entry <- (price - entry_price) / entry_price * 100 * current_position
+          if (ret_since_entry <= -stop_loss || signal == -current_position) {
+            current_position <- signal
+            entry_price <- price
+          }
+        }
+        position_with_stop[i] <- current_position
+      }
+
+      df_temp$position_with_stop <- position_with_stop
+      df_temp$strategy_return <- dplyr::lag(df_temp$position_with_stop) * df_temp$forward_ROI30d / 30
+
+      mean(df_temp$strategy_return, na.rm = TRUE) / sd(df_temp$strategy_return, na.rm = TRUE)
     })
   )
 
-# === STEP 3: Get best combo ===
-best_roll_combo <- roll_opt_results %>%
-  filter(sharpe == max(sharpe, na.rm = TRUE))
+best_combo <- roll_opt_results %>% filter(sharpe == max(sharpe, na.rm = TRUE))
+print(best_combo)
 
-print(best_roll_combo)
-
-
-
-window_size <- 90
-
+# === Step 8: Apply to Live Data ===
+window_size <- best_combo$roll_window
+stop_loss_threshold <- best_combo$stop_loss
 df_final_live <- df_final %>% filter(date >= "2023-01-01")
 
-garch_input_live <- df_final_live %>%
-  select(date, forward_ROI30d) %>%
-  rename(series = forward_ROI30d)
-
+garch_input_live <- df_final_live %>% select(date, forward_ROI30d) %>% rename(series = forward_ROI30d)
 garch_output_live <- RTL::garch(x = garch_input_live, out = "data")
-
-garch_df_live <- garch_output_live %>%
-  data.frame(date = index(.), garch = coredata(.)) %>%
-  as_tibble()
+garch_df_live <- garch_output_live %>% data.frame(date = index(.), garch = coredata(.)) %>% as_tibble()
+df_final_live <- df_final_live %>% left_join(garch_df_live, by = "date")
 
 df_final_live <- df_final_live %>%
-  left_join(garch_df_live, by = "date")
-
-df_final_live <- df_final_live %>%
-  mutate(predicted_ROI30d = predict(training_model, newdata = df_final_live),
-         expected_sharpe = predicted_ROI30d / garch,
-         roll_mean = slide_dbl(expected_sharpe, mean, .before = window_size, .complete = TRUE),
-         roll_sd = slide_dbl(expected_sharpe, sd, .before = window_size, .complete = TRUE),
-         dynamic_long_thresh = roll_mean + best_roll_combo$mean_mult * roll_sd,
-         dynamic_short_thresh = roll_mean - best_roll_combo$sd_mult * roll_sd,
-         position_dynamic = case_when(
-           expected_sharpe > dynamic_long_thresh ~ 1,
-           expected_sharpe < dynamic_short_thresh ~ -1,
-           TRUE ~ 0
-         ),
-         strategy_return_dynamic = lag(position_dynamic) * forward_ROI30d / 30, 
-         cum_strategy_return_dynamic = cumsum(replace_na(
-           strategy_return_dynamic, 0)),
-         daily_returns = (PriceUSD / lag(PriceUSD) - 1) * 100,
-         strategy_return_daily = lag(position_dynamic) * daily_returns,
-         cum_strategy_return_daily = cumsum(replace_na(strategy_return_daily, 0)),
-         cum_daily_returns = cumsum(replace_na(daily_returns, 0)),
-         cum_buy_hold_return = cumsum(replace_na(daily_returns, 0))
+  mutate(
+    predicted_ROI30d = predict(training_model, newdata = df_final_live),
+    expected_sharpe = predicted_ROI30d / garch,
+    roll_mean = slide_dbl(expected_sharpe, mean, .before = window_size, .complete = TRUE),
+    roll_sd = slide_dbl(expected_sharpe, sd, .before = window_size, .complete = TRUE),
+    dynamic_long_thresh = roll_mean + best_combo$mean_mult * roll_sd,
+    dynamic_short_thresh = roll_mean - best_combo$sd_mult * roll_sd,
+    position_raw = case_when(
+      expected_sharpe > dynamic_long_thresh ~ 1,
+      expected_sharpe < dynamic_short_thresh ~ -1,
+      TRUE ~ 0
+    )
   )
 
-library(plotly)
+# Simulate position with stop loss and re-entry allowed on live data
+position_with_stop <- rep(0, nrow(df_final_live))
+current_position <- 0
+entry_price <- NA
 
+for (i in seq_along(position_with_stop)) {
+  signal <- df_final_live$position_raw[i]
+  price <- df_final_live$PriceUSD[i]
+
+  if (current_position == 0) {
+    if (signal != 0) {
+      current_position <- signal
+      entry_price <- price
+    }
+  } else {
+    ret_since_entry <- (price - entry_price) / entry_price * 100 * current_position
+    if (ret_since_entry <= -stop_loss_threshold || signal == -current_position) {
+      current_position <- signal
+      entry_price <- price
+    }
+  }
+  position_with_stop[i] <- current_position
+}
+
+df_final_live$position_with_stop <- position_with_stop
+
+# === Step 9: Calculate returns ===
+df_final_live <- df_final_live %>%
+  mutate(
+    strategy_return = lag(position_with_stop) * forward_ROI30d / 30,
+    strategy_return_daily = lag(position_with_stop) * daily_return,
+    cum_strategy_return = cumsum(replace_na(strategy_return, 0)),
+    cum_strategy_return_daily = cumsum(replace_na(strategy_return_daily, 0)),
+    cum_daily_returns = cumsum(replace_na(daily_return, 0)),
+    entry_long = position_with_stop == 1 & lag(position_with_stop, default = 0) != 1,
+    entry_short = position_with_stop == -1 & lag(position_with_stop, default = 0) != -1
+  )
+
+# === Step 10: Visualization ===
+btc_price_plot <- df_final_live %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = PriceUSD), color = "black") +
+  geom_point(data = df_final_live %>% filter(entry_long),
+             aes(y = PriceUSD),
+             shape = 24, fill = "green", color = "darkgreen", size = 3) +
+  geom_point(data = df_final_live %>% filter(entry_short),
+             aes(y = PriceUSD),
+             shape = 25, fill = "red", color = "darkred", size = 3) +
+  labs(
+    title = "Buy/Sell Signals on BTC Price Chart (Live)",
+    y = "BTC Price (USD)",
+    x = "Date"
+  ) +
+  theme_minimal()
+
+ggplotly(btc_price_plot)
+
+
+```
+
++-------------+-----------+---------+-----------+-----------+
+| roll_window | mean_mult | sd_mult | stop_loss | sharpe    |
+|             |           |         |           |           |
+| \<dbl\>     | \<dbl\>   | \<dbl\> | \<dbl\>   | \<dbl\>   |
++============:+==========:+========:+==========:+==========:+
+| 90          | 0.2       | 2       | 4         | 0.1691046 |
++-------------+-----------+---------+-----------+-----------+
+
+```{r}
 strategy_plot <- df_final_live %>%
   ggplot(aes(x = date)) +
-  geom_line(aes(y = cum_daily_returns, color = "Cumulative Daily Returns")) +
-  geom_line(aes(y = cum_strategy_return_daily, color = "Daily Returns on Strategy")) +
+
+  # Strategy performance (filtered position logic)
+  geom_line(aes(y = cum_strategy_return_daily, color = "Strategy (Filtered)")) +
+
+  # Buy & Hold performance
+  geom_line(aes(y = cum_daily_returns, color = "Buy & Hold")) +
+
+  # Buy signals
+  geom_point(
+    data = df_final_live %>% filter(entry_long),
+    aes(y = cum_strategy_return_daily),
+    shape = 24, fill = "green", color = "darkgreen", size = 3
+  ) +
+
+  # Sell signals
+  geom_point(
+    data = df_final_live %>% filter(entry_short),
+    aes(y = cum_strategy_return_daily),
+    shape = 25, fill = "red", color = "darkred", size = 3
+  ) +
+
   labs(
-    title = "Dynamic Sharpe Threshold Strategy vs Buy & Hold (Live 2023+)",
-    y = "Cumulative ROI(%)",
+    title = "Cumulative ROI: Strategy vs Buy & Hold (Filtered Positions)",
+    y = "Cumulative ROI (%)",
+    x = "date",
     color = "Legend"
   ) +
   theme_minimal()
@@ -934,40 +1038,134 @@ strategy_plot <- df_final_live %>%
 ggplotly(strategy_plot)
 
 
+```
+
+```{r}
+
+df_final_live <- df_final_live %>%
+  mutate(
+    peak_strategy = cummax(cum_strategy_return_daily),
+    drawdown_strategy = cum_strategy_return_daily - peak_strategy,
+
+    peak_buyhold = cummax(cum_daily_returns),
+    drawdown_buyhold = cum_daily_returns - peak_buyhold
+  )
+drawdown_plot <- df_final_live %>%
+  ggplot(aes(x = date)) +
+
+  geom_line(aes(y = drawdown_strategy, color = "Strategy")) +
+  geom_line(aes(y = drawdown_buyhold, color = "Buy & Hold")) +
+
+  labs(
+    title = "Drawdowns: Strategy vs Buy & Hold",
+    y = "Drawdown (%)",
+    x = "date",
+    color = "Legend"
+  ) +
+  theme_minimal()
+
+ggplotly(drawdown_plot)
+
 
 ```
 
 ```{r}
 
-library(PerformanceAnalytics)
+df_final_live <- df_final_live %>%
+  mutate(position_raw = position_dynamic)
 
-# Drawdown helper function
-calc_drawdown <- function(returns) {
-  cum_returns <- cumsum(replace_na(returns, 0))
-  max_cum <- cummax(cum_returns)
-  drawdown <- cum_returns - max_cum
-  return(drawdown)
-}
-
-# Add drawdowns to live data
+# Improved filter: directly flips from long ↔ short
 df_final_live <- df_final_live %>%
   mutate(
-    drawdown_strategy = calc_drawdown(strategy_return_daily),
-    drawdown_buyhold = calc_drawdown(daily_returns)
+    position_filtered = accumulate(position_raw, .init = 0, function(prev, curr) {
+      case_when(
+        curr != 0 ~ curr,     # flip to new position if signal exists (1 or -1)
+        TRUE ~ prev           # otherwise, hold previous position
+      )
+    })[-1]
   )
 
-# Drawdown Plot
+df_final_live <- df_final_live %>%
+  mutate(
+    strategy_return = lag(position_filtered) * forward_ROI30d / 30,
+    strategy_return_daily = lag(position_filtered) * daily_return,
+    
+    cum_strategy_return = cumsum(replace_na(strategy_return, 0)),
+    cum_strategy_return_daily = cumsum(replace_na(strategy_return_daily, 0))
+  )
+
+df_final_live <- df_final_live %>%
+  mutate(
+    entry_long = position_filtered == 1 & lag(position_filtered, default = 0) != 1,
+    entry_short = position_filtered == -1 & lag(position_filtered, default = 0) != -1
+  )
+
+# Plot with Buy/Sell markers on Price
+btc_price_plot <- df_final_live %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = PriceUSD), color = "black") +
+  
+  # Buy signals
+  geom_point(data = df_final_live %>% filter(entry_long),
+             aes(y = PriceUSD), 
+             shape = 24, size = 3, fill = "green", color = "darkgreen") +
+  
+  # Sell signals
+  geom_point(data = df_final_live %>% filter(entry_short),
+             aes(y = PriceUSD), 
+             shape = 25, size = 3, fill = "red", color = "darkred") +
+  
+  labs(
+    title = "Buy/Sell Signals on BTC Price Chart (Live)",
+    y = "BTC Price (USD)",
+    x = "Date"
+  ) +
+  theme_minimal()
+
+# Make it interactive
+ggplotly(btc_price_plot)
+
+
+```
+
+```{r}
+# Plot cumulative strategy vs buy & hold
+strategy_vs_hold <- strategy_vs_hold +
+  geom_point(data = df_final_live %>% filter(entry_long),
+             aes(y = cum_strategy_return_daily), 
+             shape = 24, size = 3, fill = "green", color = "darkgreen") +
+  geom_point(data = df_final_live %>% filter(entry_short),
+             aes(y = cum_strategy_return_daily), 
+             shape = 25, size = 3, fill = "red", color = "darkred") + theme_minimal()
+
+ggplotly(strategy_vs_hold)
+
+```
+
+```{r}
+
+
+df_final_live <- df_final_live %>%
+  mutate(
+    peak_strategy = cummax(cum_strategy_return_daily),
+    drawdown_strategy = cum_strategy_return_daily - peak_strategy,
+
+    peak_hold = cummax(cum_daily_returns),
+    drawdown_hold = cum_daily_returns - peak_hold
+  )
+
 drawdown_plot <- df_final_live %>%
   ggplot(aes(x = date)) +
-  geom_line(aes(y = drawdown_buyhold, color = "Buy & Hold")) +
   geom_line(aes(y = drawdown_strategy, color = "Strategy")) +
+  geom_line(aes(y = drawdown_hold, color = "Buy & Hold")) +
   labs(
-    title = "Drawdown Comparison: Strategy vs Buy & Hold",
+    title = "Drawdowns: Strategy vs Buy & Hold",
     y = "Drawdown (%)",
     color = "Legend"
   ) +
   theme_minimal()
 
 ggplotly(drawdown_plot)
+
 
 ```

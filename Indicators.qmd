@@ -81,7 +81,7 @@ global_crypto_data <- crypto_global_quotes(
 
 btc_dom_data <- global_crypto_data %>% 
   mutate(time = as.Date(timestamp)) %>%
-  select(time, btc_dominance)
+  dplyr::select(time, btc_dominance)
 
 
 # Define your metric list for BTC
@@ -148,8 +148,8 @@ df_clean_full <- df_clean_full %>%
     date = as.Date(time)
   ) %>%
   drop_na(daily_return) %>%
-  select(-time) %>%
-  select(date, asset, PriceUSD, daily_return, ROI30d, btc_dominance, everything())
+  dplyr::select(-time) %>%
+  dplyr::select(date, asset, PriceUSD, daily_return, ROI30d, btc_dominance, everything())
 
 
 
@@ -158,20 +158,20 @@ url <- "https://api.alternative.me/fng/?limit=0&format=json"
 fng_data <- fromJSON(content(GET(url), "text", encoding = "UTF-8"))
 
 fng <- fng_data$data %>%
-  as_tibble() %>% select(timestamp, value, value_classification)
+  as_tibble() %>% dplyr::select(timestamp, value, value_classification)
 
 fng <- fng %>%
   mutate(date = as.Date(as.POSIXct(as.numeric(fng$timestamp), origin = "1970-01-01", tz = "UTC")),
          fng_value = as.numeric(value),
          fng_class = value_classification)
 
-fng <- fng %>% select(-timestamp, -value, -value_classification) %>% arrange(date) 
+fng <- fng %>% dplyr::select(-timestamp, -value, -value_classification) %>% arrange(date) 
 
 # Merge into CoinMetrics data
 df_with_fng <- df_clean_full %>%
   left_join(fng, by = "date") %>%
   drop_na() %>%
-  select(date, asset, PriceUSD, daily_return, ROI30d, fng_value, fng_class, everything())
+  dplyr::select(date, asset, PriceUSD, daily_return, ROI30d, fng_value, fng_class, everything())
 
 
 ```
@@ -588,5 +588,386 @@ ggplot(df_with_forecast3, aes(x = forward_ROI30d, y = predicted_roi)) +
   theme_minimal()
 
 
+
+```
+
+```{r}
+# Adjusted model without fng_value
+formula_no_fng <- forward_ROI30d ~ AdrActCnt + TxCnt + TxTfrValAdjUSD +
+  FeeTotUSD + RevUSD + VelCur1yr + btc_dominance +
+  SplyAdrBalNtv1K + SplyFF + garch
+
+df_post2018 <- df_with_forecast3 %>% filter(date >= as.Date("2018-01-01"))
+
+model_no_fng <- lm(formula = formula_no_fng, data = df_post2018)
+summary(model_no_fng)
+
+
+
+
+```
+
+**Out of Sample Training:**
+
+```{r}
+df_pre2018 <- df_clean_full %>%
+  filter(date < as.Date("2018-01-01")) %>%
+  mutate(forward_ROI30d = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD)*100) %>%
+  drop_na()
+
+df_pre2018_garch <- df_pre2018 %>%
+  dplyr::select(date, forward_ROI30d) %>%
+  rename(series = forward_ROI30d) %>%
+  drop_na()
+
+garch_output_pre2018 <- garch(x = df_pre2018_garch, out = "data")
+
+garch_df_pre2018 <- garch_output_pre2018 %>%
+  data.frame(date = zoo::index(.), garch_vol.garch = zoo::coredata(.)) %>%
+  as_tibble()
+
+df_pre2018 <- df_pre2018 %>%
+  left_join(garch_df_pre2018, by = "date")
+
+df_pre2018$predicted_ROI30d <- predict(model_no_fng, newdata = df_pre2018)
+
+
+
+```
+
+```{r}
+
+ggplot(df_pre2018, aes(x = forward_ROI30d, y = predicted_ROI30d)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred", linewidth = 1) +
+  labs(
+    title = "Actual vs Predicted 30-Day ROI (Pre-2018)",
+    x = "Actual ROI30d",
+    y = "Predicted ROI30d"
+  ) +
+  theme_minimal()
+
+ggplot(df_pre2018, aes(x = date)) +
+  geom_line(aes(y = forward_ROI30d, color = "Actual"), size = 0.5) +
+  geom_line(aes(y = predicted_ROI30d, color = "Predicted"), size = 0.5, linetype = "dashed") +
+  labs(title = "Actual vs Predicted ROI30d Over Time",
+       y = "ROI30d (%)", x = "Date", color = "Legend") +
+  scale_color_manual(values = c("Actual" = "black", "Predicted" = "blue")) +
+  theme_minimal()
+
+```
+
+```{r}
+df_pre2018 <- df_pre2018 %>%
+  mutate(expected_sharpe = predicted_ROI30d / garch,
+         position = case_when(expected_sharpe > 0.1 ~ 1, #Go long
+                              expected_sharpe < -0.1 ~ -1, #Go Short
+                              TRUE ~ 0 #Neutral
+                              ),
+         strategy_return = lag(position) * forward_ROI30d / 30,
+         cum_strategy_return = cumsum(replace_na(strategy_return, 0)),
+         cum_buy_hold_return = cumsum(replace_na(forward_ROI30d / 30, 0))) %>%
+  dplyr::select(date, forward_ROI30d, predicted_ROI30d, expected_sharpe,cum_strategy_return, cum_buy_hold_return, position, PriceUSD, AdrActCnt, TxCnt, TxTfrValAdjUSD,
+  FeeTotUSD, RevUSD, VelCur1yr, btc_dominance,
+  SplyAdrBalNtv1K, SplyFF, garch)
+
+
+df_pre2018 %>% ggplot(aes(x = date)) +
+  geom_line(aes(y = cum_strategy_return, color = "Strategy")) +
+  geom_line(aes(y = cum_buy_hold_return, color = "Buy & Hold")) +
+  labs(
+    title = "Cumulative Return Comparison",
+    y = "Cumulative ROI(%)",
+    color = "Legend"
+  )
+
+
+
+
+```
+
+```{r}
+
+library(tidyverse)
+
+# === STEP 1: Define range of thresholds ===
+threshold_range <- seq(0.05, 0.5, by = 0.01)
+
+# === STEP 2: Grid search for best long/short threshold pair ===
+results <- expand_grid(long_thresh = threshold_range,
+                       short_thresh = -rev(threshold_range)) %>%
+  mutate(
+    sharpe = map2_dbl(long_thresh, short_thresh, ~ {
+      temp <- df_post2018 %>%
+        mutate(expected_sharpe = predicted_roi / garch,
+               position = case_when(
+                 expected_sharpe > .x ~ 1,
+                 expected_sharpe < .y ~ -1,
+                 TRUE ~ 0
+               ),
+               strategy_return = lag(position) * forward_ROI30d / 30)
+
+      mean(temp$strategy_return, na.rm = TRUE) /
+        sd(temp$strategy_return, na.rm = TRUE)
+    })
+  )
+
+# === STEP 3: Get best performing threshold pair ===
+best_combo <- results %>% filter(sharpe == max(sharpe, na.rm = TRUE))
+
+print(best_combo)
+
+# === STEP 4: Apply best thresholds to test data ===
+df_pre2018 <- df_pre2018 %>%
+  mutate(expected_sharpe = predicted_ROI30d / garch,
+         position = case_when(
+           expected_sharpe > best_combo$long_thresh ~ 1,
+           expected_sharpe < best_combo$short_thresh ~ -1,
+           TRUE ~ 0
+         ),
+         strategy_return = lag(position) * forward_ROI30d / 30,
+         cum_strategy_return = cumsum(replace_na(strategy_return, 0)),
+         cum_buy_hold_return = cumsum(replace_na(forward_ROI30d / 30, 0)))
+
+# === STEP 5: Plot it ===
+df_pre2018 %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = cum_strategy_return, color = "Strategy")) +
+  geom_line(aes(y = cum_buy_hold_return, color = "Buy & Hold")) +
+  labs(
+    title = "Cumulative Return Comparison (Test Set)",
+    y = "Cumulative ROI (%)",
+    color = "Legend"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+library(dplyr)
+library(slider)
+library(plotly)
+
+# 1. Create rolling mean and sd of expected Sharpe
+window_size <- 90  # e.g., 90 days
+
+df_pre2018_roll <- df_pre2018 %>%
+  mutate(
+    roll_mean = slide_dbl(expected_sharpe, mean, .before = window_size, .complete = TRUE),
+    roll_sd   = slide_dbl(expected_sharpe, sd,   .before = window_size, .complete = TRUE),
+
+    # 2. Dynamic thresholds: mean ± 1 * sd (tweak the multiplier as needed)
+    dynamic_long_thresh = roll_mean + 0.5 * roll_sd,
+    dynamic_short_thresh = roll_mean - 1.5 * roll_sd,
+
+    # 3. Generate positions based on dynamic thresholds
+    position = case_when(
+      expected_sharpe > dynamic_long_thresh ~ 1,
+      expected_sharpe < dynamic_short_thresh ~ -1,
+      TRUE ~ 0
+    ),
+
+    # 4. Calculate returns
+    strategy_return = lag(position) * forward_ROI30d / 30,
+    cum_strategy_return = cumsum(replace_na(strategy_return, 0)),
+    cum_buy_hold_return = cumsum(replace_na(forward_ROI30d / 30, 0)),
+    daily_returns = (PriceUSD / lag(PriceUSD) - 1) * 100,
+    cum_daily_returns = cumsum(replace_na(daily_returns, 0)),
+    strategy_return_daily = lag(position) * daily_returns,
+    cum_strategy_return_daily = cumsum(replace_na(strategy_return_daily, 0))
+  )
+
+strategy <- df_pre2018_roll %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = cum_strategy_return, color = "Strategy")) +
+  geom_line(aes(y = cum_buy_hold_return, color = "Buy & Hold")) +
+  geom_line(aes(y = cum_daily_returns, color = "Cumulative Daily Returns")) +
+  geom_line(aes(y = cum_strategy_return_daily, color = "daily returns on strategy")) +
+  labs(
+    title = "Dynamic Sharpe Threshold Strategy vs Buy & Hold",
+    y = "Cumulative ROI(%)",
+    color = "Legend"
+  ) +
+  theme_minimal()
+ggplotly(strategy)
+
+```
+
+```{r}
+formula_enhanced <- forward_ROI30d ~ AdrActCnt + TxCnt +
+  FeeTotUSD + RevUSD + btc_dominance + SplyAdrBalNtv1K
+
+formula_enhanced1 <- forward_ROI30d ~ AdrActCnt + TxCnt +
+  FeeTotUSD + RevUSD + btc_dominance + SplyAdrBalNtv1K + garch
+
+df_final <- df_clean_full %>%
+  mutate(
+    forward_ROI30d = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD) * 100,
+    daily_return = (PriceUSD / lag(PriceUSD) - 1) * 100) %>%
+  drop_na()
+
+df_final <- df_final %>% dplyr::select(
+    date, PriceUSD, forward_ROI30d, daily_return,
+    AdrActCnt, TxCnt, TxTfrValAdjUSD, FeeTotUSD, RevUSD,
+    VelCur1yr, btc_dominance, SplyAdrBalNtv1K
+  )
+
+df_final_training <- df_final %>% filter(date > "2016-12-31" & date < "2023-01-01")
+
+training_model <- df_final_training %>% lm(formula = formula_enhanced)
+#summary(training_model) 
+#vif(training_model)
+
+df_final_training <- df_final_training %>%
+  mutate(residuals = resid(training_model))
+
+garch_input_final_training <- df_final_training %>%
+  select(date, residuals) %>%
+  rename(series = residuals)
+
+garch_output_final_training <- RTL::garch(x = garch_input_final_training, out = "data")
+
+garch_df <- garch_output_final_training %>%
+  data.frame(date = index(.), garch_vol_resid = coredata(.)) %>%
+  as_tibble()
+
+df_final_training <- df_final_training %>%
+  left_join(garch_df, by = "date")
+
+training_model_garch <- df_final_training %>% lm(formula = formula_enhanced1)
+#summary(training_model_garch)
+#vif(training_model_garch)
+
+library(slider)
+
+# === STEP 1: Define your ranges ===
+roll_window <- 90  # Keep window size fixed (or loop over this too)
+mean_multipliers <- seq(0.2, 1.0, by = 0.1)
+sd_multipliers <- seq(0.5, 2.0, by = 0.1)
+
+# === STEP 2: Grid search for best multiplier combo ===
+roll_opt_results <- expand_grid(mean_mult = mean_multipliers,
+                                sd_mult = sd_multipliers) %>%
+  mutate(
+    sharpe = pmap_dbl(list(mean_mult, sd_mult), function(mean_mult, sd_mult) {
+      df_temp <- df_final_training %>%
+        mutate(
+          expected_sharpe = predict(training_model, newdata = .) / garch,
+          roll_mean = slide_dbl(expected_sharpe, mean, .before = roll_window, .complete = TRUE),
+          roll_sd   = slide_dbl(expected_sharpe, sd,   .before = roll_window, .complete = TRUE),
+          dynamic_long_thresh = roll_mean + mean_mult * roll_sd,
+          dynamic_short_thresh = roll_mean - sd_mult * roll_sd,
+          position = case_when(
+            expected_sharpe > dynamic_long_thresh ~ 1,
+            expected_sharpe < dynamic_short_thresh ~ -1,
+            TRUE ~ 0
+          ),
+          strategy_return = lag(position) * forward_ROI30d / 30
+        )
+
+      # Return Sharpe Ratio
+      mean(df_temp$strategy_return, na.rm = TRUE) /
+        sd(df_temp$strategy_return, na.rm = TRUE)
+    })
+  )
+
+# === STEP 3: Get best combo ===
+best_roll_combo <- roll_opt_results %>%
+  filter(sharpe == max(sharpe, na.rm = TRUE))
+
+print(best_roll_combo)
+
+
+
+window_size <- 90
+
+df_final_live <- df_final %>% filter(date >= "2023-01-01")
+
+garch_input_live <- df_final_live %>%
+  select(date, forward_ROI30d) %>%
+  rename(series = forward_ROI30d)
+
+garch_output_live <- RTL::garch(x = garch_input_live, out = "data")
+
+garch_df_live <- garch_output_live %>%
+  data.frame(date = index(.), garch = coredata(.)) %>%
+  as_tibble()
+
+df_final_live <- df_final_live %>%
+  left_join(garch_df_live, by = "date")
+
+df_final_live <- df_final_live %>%
+  mutate(predicted_ROI30d = predict(training_model, newdata = df_final_live),
+         expected_sharpe = predicted_ROI30d / garch,
+         roll_mean = slide_dbl(expected_sharpe, mean, .before = window_size, .complete = TRUE),
+         roll_sd = slide_dbl(expected_sharpe, sd, .before = window_size, .complete = TRUE),
+         dynamic_long_thresh = roll_mean + best_roll_combo$mean_mult * roll_sd,
+         dynamic_short_thresh = roll_mean - best_roll_combo$sd_mult * roll_sd,
+         position_dynamic = case_when(
+           expected_sharpe > dynamic_long_thresh ~ 1,
+           expected_sharpe < dynamic_short_thresh ~ -1,
+           TRUE ~ 0
+         ),
+         strategy_return_dynamic = lag(position_dynamic) * forward_ROI30d / 30, 
+         cum_strategy_return_dynamic = cumsum(replace_na(
+           strategy_return_dynamic, 0)),
+         daily_returns = (PriceUSD / lag(PriceUSD) - 1) * 100,
+         strategy_return_daily = lag(position_dynamic) * daily_returns,
+         cum_strategy_return_daily = cumsum(replace_na(strategy_return_daily, 0)),
+         cum_daily_returns = cumsum(replace_na(daily_returns, 0)),
+         cum_buy_hold_return = cumsum(replace_na(daily_returns, 0))
+  )
+
+library(plotly)
+
+strategy_plot <- df_final_live %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = cum_daily_returns, color = "Cumulative Daily Returns")) +
+  geom_line(aes(y = cum_strategy_return_daily, color = "Daily Returns on Strategy")) +
+  labs(
+    title = "Dynamic Sharpe Threshold Strategy vs Buy & Hold (Live 2023+)",
+    y = "Cumulative ROI(%)",
+    color = "Legend"
+  ) +
+  theme_minimal()
+
+ggplotly(strategy_plot)
+
+
+
+```
+
+```{r}
+
+library(PerformanceAnalytics)
+
+# Drawdown helper function
+calc_drawdown <- function(returns) {
+  cum_returns <- cumsum(replace_na(returns, 0))
+  max_cum <- cummax(cum_returns)
+  drawdown <- cum_returns - max_cum
+  return(drawdown)
+}
+
+# Add drawdowns to live data
+df_final_live <- df_final_live %>%
+  mutate(
+    drawdown_strategy = calc_drawdown(strategy_return_daily),
+    drawdown_buyhold = calc_drawdown(daily_returns)
+  )
+
+# Drawdown Plot
+drawdown_plot <- df_final_live %>%
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = drawdown_buyhold, color = "Buy & Hold")) +
+  geom_line(aes(y = drawdown_strategy, color = "Strategy")) +
+  labs(
+    title = "Drawdown Comparison: Strategy vs Buy & Hold",
+    y = "Drawdown (%)",
+    color = "Legend"
+  ) +
+  theme_minimal()
+
+ggplotly(drawdown_plot)
 
 ```

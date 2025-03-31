@@ -57,6 +57,229 @@ The entire ETH_BTC two regime is summarized in two functions
 1.  Data retrieval
 2.  Creating the chart
 
+```{r, Ratio_function}
+
+
+get_simple_crypto_ratio <- function(ticker1, ticker2) {
+  
+    suppressPackageStartupMessages({
+    library(quantmod)
+    library(xts)
+  })
+    # --- 1. Fetch Data ---
+    # Attempt to fetch data for ticker1
+    data1 <- tryCatch({
+        getSymbols(ticker1, src = "yahoo", auto.assign = FALSE, warnings = FALSE)
+    }, error = function(e) {
+        message("Error fetching data for ", ticker1, ": ", e$message)
+        return(NULL) # Return NULL if fetching failed
+    })
+
+    # Attempt to fetch data for ticker2
+    data2 <- tryCatch({
+        getSymbols(ticker2, src = "yahoo", auto.assign = FALSE, warnings = FALSE)
+    }, error = function(e) {
+        message("Error fetching data for ", ticker2, ": ", e$message)
+        return(NULL) # Return NULL if fetching failed
+    })
+
+    # Check if fetching failed for either ticker
+    if (is.null(data1) || is.null(data2)) {
+        message("Could not proceed due to data fetching errors.")
+        return(invisible(NULL)) # Return NULL invisibly (without printing it)
+    }
+
+    # --- 2. Extract Adjusted Prices ---
+    # quantmod::Ad extracts the Adjusted closing price column
+    adj_price1 <- Ad(data1)
+    adj_price2 <- Ad(data2)
+
+    # --- 3. Merge Data ---
+    # Use base R merge for xts objects, keeping only dates where both have data
+    merged_data <- merge(adj_price1, adj_price2, join = "inner")
+
+    # Check if merge resulted in any common data
+     if (nrow(merged_data) == 0) {
+         message("No common trading dates found for the selected period.")
+         return(invisible(NULL))
+     }
+
+    # --- 4. Calculate Ratio ---
+    # Get the column names after merge (they often become TICKER.Adjusted)
+    col1_name <- names(merged_data)[1]
+    col2_name <- names(merged_data)[2]
+
+    # Calculate ratio: Price of Ticker 2 / Price of Ticker 1
+    # Avoid division by zero or NA denominators
+    valid_rows <- !is.na(merged_data[, col1_name]) & merged_data[, col1_name] != 0
+    ratio <- rep(NA, nrow(merged_data)) # Initialize ratio vector with NA
+    ratio[valid_rows] <- merged_data[valid_rows, col2_name] / merged_data[valid_rows, col1_name]
+
+
+    # --- 5. Format Output ---
+    # Create a standard data frame for the result
+    result_df <- data.frame(
+        date = index(merged_data),   # Get dates from the merged xts index
+        ratio_value = coredata(ratio) # Get the numeric ratio values
+    )
+
+    # Create a dynamic name for the ratio column (e.g., eth_btc_ratio)
+    base1 <- tolower(strsplit(ticker1, "-")[[1]][1])
+    base2 <- tolower(strsplit(ticker2, "-")[[1]][1])
+    ratio_col_name <- paste0(base2, "_", base1, "_ratio")
+    names(result_df) <- c("date", ratio_col_name) # Rename columns
+
+    # Remove rows where the ratio calculation resulted in NA
+    result_df <- na.omit(result_df)
+
+    # Check if result is empty after NA removal
+    if(nrow(result_df) == 0) {
+        message("Ratio calculation resulted in zero valid rows.")
+        return(invisible(NULL))
+    }
+
+    # Return the final data frame
+    return(result_df)
+}
+```
+
+```{r, Gini_lamp_analyze_crypto_ratio}
+# Define the extended analysis function
+Gini_lamp_analyze_crypto_ratio <- function(data,upper_threshold = 1,
+  lower_threshold = -0.8) {
+  # --- 1. Load Required Packages ---
+  suppressPackageStartupMessages({
+    library(ggplot2)
+    library(dplyr)
+    library(rlang)
+    library(mixtools)
+    library(patchwork)
+    library(stats) # For qnorm in stat_qq
+  })
+
+  # --- 2. Input Validation and Dynamic Name Extraction ---
+  if (!is.data.frame(data)) {
+      stop("Input 'data' must be a data frame.")
+  }
+  if (!"date" %in% names(data)) {
+      stop("Input data frame must contain a 'date' column.")
+  }
+  ratio_col_name <- setdiff(names(data), "date")
+  if (length(ratio_col_name) != 1) {
+      stop("Input data frame must have exactly one column besides 'date'. Found: ",
+           paste(ratio_col_name, collapse=", "))
+  }
+  ratio_col_name <- ratio_col_name[1]
+  parts <- strsplit(ratio_col_name, "_")[[1]]
+    # Adjust index for ticker1 if necessary (e.g., if parts are just 'eth', 'btc', 'ratio')
+    ticker1_index <- max(1, length(parts) - 1) # Handle short names, default to 2nd last
+  if (length(parts) < 2 || parts[length(parts)] != "ratio") { # Need at least ticker2_ticker1_ratio
+       stop("Ratio column name must be in the format 'ticker2_ticker1_ratio'. Found: '", ratio_col_name, "'")
+  }
+  ticker2_name <- toupper(parts[1])
+  ticker1_name <- toupper(parts[ticker1_index])
+  pair_name <- paste0(ticker2_name, "/", ticker1_name)
+  data <- data %>% dplyr::rename(ratio = !!sym(ratio_col_name))
+
+  # --- 3. Clean Data ---
+  clean_data <- data %>%
+    filter(!is.na(ratio), is.finite(ratio), ratio != 0)
+  if (nrow(clean_data) < 20) {
+       stop("Insufficient valid data points (found ", nrow(clean_data), ", need >= 20) after cleaning for model fitting.")
+   }
+
+  # --- 4. Fit Gaussian Mixture Model (GMM) ---
+  clean_data$log_ratio <- log(clean_data$ratio) # Calculate log_ratio once
+  mix_model <- tryCatch({
+      normalmixEM(clean_data$log_ratio, k = 2, maxit = 1000, epsilon = 1e-06)
+  }, error = function(e) {
+      message("Error fitting Gaussian Mixture Model: ", e$message)
+      return(NULL)
+  })
+  if (is.null(mix_model)) {
+      stop("Failed to fit Gaussian Mixture Model. Check data distribution or model parameters.")
+  }
+
+  # --- 5. Regime Classification and Z-Score Calculation ---
+  clean_data$regime <- ifelse(mix_model$posterior[, 1] > 0.5, 1, 2)
+  regime_params <- data.frame(
+    regime = c(1, 2), mu = mix_model$mu, sigma = mix_model$sigma
+  )
+  clean_data <- clean_data %>%
+    left_join(regime_params, by = "regime") %>%
+    mutate(z_score = (log_ratio - mu) / sigma)
+
+  # --- 6. Generate Trading Signals (Dynamically Labeled) ---
+  clean_data <- clean_data %>%
+    mutate(
+      signal = case_when(
+        z_score > upper_threshold ~ paste("Short", pair_name, "(overvalued)"),
+        z_score < lower_threshold ~ paste("Long", pair_name, "(undervalued)"),
+        TRUE ~ "Hold"
+      )
+    )
+
+  # --- 7. Create Plots ---
+
+  # 7a. Original Signal/Z-Score Plot (Combined)
+  plot_ratio <- ggplot(clean_data, aes(x = date)) +
+    geom_line(aes(y = ratio, color = as.factor(regime)), linewidth = 0.8) +
+    geom_point(data = filter(clean_data, signal != "Hold"),
+               aes(y = ratio, shape = signal, color = as.factor(regime)),
+               size = 2.5, alpha = 0.8) + # Slightly smaller points
+    scale_color_manual(values = c("1" = "#FF6B6B", "2" = "#4ECDC4"), name="Regime") +
+    scale_shape_discrete(name = "Signal") +
+    labs(title = paste(pair_name, "Ratio with Regimes and Trading Signals"),
+         y = "Ratio", x = "Date") +
+    theme_minimal() + theme(legend.position = "bottom")
+  plot_zscore <- ggplot(clean_data, aes(x = date, y = z_score)) +
+    geom_line(color = "steelblue") +
+    geom_hline(yintercept = c(lower_threshold, upper_threshold),
+               linetype = "dashed", color = "gray40") +
+    labs(title = paste("Regime-Specific Z-Score with Thresholds for", pair_name),
+         y = "Z-Score", x = "Date") +
+    theme_minimal()
+  signal_plots_combined <- plot_ratio / plot_zscore +
+    plot_layout(heights = c(2, 1))
+
+  # 7b. New Simple Ratio Line Plot
+  simple_ratio_plot <- ggplot(clean_data, aes(x = date, y = ratio)) +
+    geom_line(color = "blue") +
+    labs(title = paste("Simple Time Series of", pair_name, "Ratio"),
+         y = "Ratio", x = "Date") +
+    theme_minimal()
+
+  # 7c. New Histogram + Density Plot
+  histogram_plot <- ggplot(clean_data, aes(x = ratio)) +
+    geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "lightblue", color = "black", alpha = 0.7) +
+    geom_density(color = "red", linewidth = 1) +
+    labs(title = paste("Histogram and Density of", pair_name, "Ratio"),
+         x = paste(pair_name, "Ratio"), y = "Density") +
+    theme_minimal()
+
+  # 7d. New QQ Plot (using ggplot) for log(ratio)
+  qq_plot <- ggplot(clean_data, aes(sample = log_ratio)) + # Use pre-calculated log_ratio
+       stat_qq(distribution = stats::qnorm, size=1, alpha=0.6) + # Add size/alpha
+       stat_qq_line(distribution = stats::qnorm, color = "red", linetype = "dashed", linewidth=1) +
+       labs(title = paste("Normal Q-Q Plot of log(", pair_name, " Ratio)"),
+            x = "Theoretical Normal Quantiles", y = "Sample Quantiles (Log Scale)") +
+       theme_minimal()
+
+  # --- 8. Return Results ---
+  # Return a list containing data, parameters, model object, and all plots
+  return(list(
+    data_with_signals = clean_data,
+    model_parameters = regime_params,
+    model_object = plot(mix_model, which = 2),  # Return the model object
+    signal_plots_combined = signal_plots_combined, # Original combined plot
+    simple_ratio_plot = simple_ratio_plot,     # New plot 1
+    histogram_plot = histogram_plot,           # New plot 2
+    qq_plot = qq_plot                          # New plot 3
+  ))
+}
+
+```
+
 ```{r}
 
 

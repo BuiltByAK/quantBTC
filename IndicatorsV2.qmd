@@ -240,7 +240,7 @@ df <- df %>% drop_na() %>%
          mctc_scaled_mult = scales::rescale(mctc, to = c(0, 1)),
          mcmr_scaled_mult = scales::rescale(mcmr, to = c(0, 1)),
          puell_scaled = scales::rescale(puell_multiple, to = c(0,1)),
-         momr_scaled_mult = scales::rescale(mcmr, to = c(0,1)),
+         momr_scaled_mult = scales::rescale(momr, to = c(0,1)),
          rctc_scaled_mult = scales::rescale(rctc, to = c(0,1)),
          NVTAdjFF_scaled = scales::rescale(NVTAdjFF, to = c(0,1)),
          rvt_scaled = scales::rescale(rvt, to = c(0,1)),
@@ -263,6 +263,8 @@ metrics_chart <- df %>% ggplot(aes(x = time)) +
 
 ggplotly(metrics_chart)
 ```
+
+Make it all Percent changes
 
 \
 200

@@ -4,8 +4,6 @@ format: html
 editor: visual
 ---
 
-
-
 ```{r}
 add_text <- function(plt, x, y, text, size, color){
   
@@ -65,7 +63,6 @@ candle
 
 ```
 
-
 ```{r}
 
 bit %>% 
@@ -88,7 +85,6 @@ rets %>%
          xaxis = list(title = ""),
          yaxis = list(title = "Log Returns", tickformat = '.1%'))
 ```
-
 
 ```{r stl}
 library(zoo)
@@ -128,7 +124,6 @@ garchdat <- rets %>% dplyr::select(date, closeclose)
 garchdat <- RTL::garch(garchdat)
 
 ```
-
 
 ```{r}
 library(tidyverse)
@@ -185,4 +180,3 @@ tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>%
   ggplot(aes(x = `ETC-USD`, y = `BTC-USD`)) + geom_point()
 
 ```
- 

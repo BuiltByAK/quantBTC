@@ -172,17 +172,140 @@ path <- tidyquant::tq_get(
 path / monthcor
 
 
-tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
-  get = 'stock.prices',
-  from = '2009-01-01'
-) %>% 
-  dplyr::select(date, symbol, close) %>% 
-  dplyr::group_by(symbol) %>% 
-  dplyr::mutate(r = log(close / lag(close))) %>% 
-tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>% 
-  #dplyr::filter(date >= '2020-03-01' & date <= '2020-05-31') %>% 
-  ggplot(aes(x = `ETC-USD`, y = `BTC-USD`)) + geom_point()
+```
+
+
+```{r}
+
+plot.ZeroInterceptBeta <- function(coinString, startdate, window){
+  
+          abriv <- stringr::str_split_i(coinString, '-', 1)
+          
+          wide <- tidyquant::tq_get(
+            c(coinString, 'BTC-USD'),
+            get = 'stock.prices',
+            from = startdate
+          ) %>% 
+            dplyr::select(date, symbol, close) %>% 
+            tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = close) %>% 
+            dplyr::rename_with(., .fn = ~stringr::str_replace_all(., '-USD', ''))
+          
+          
+          
+          zeroint <- wide %>%
+            dplyr::mutate(
+            '{abriv}_r' = log(!!sym(abriv) / lag(!!sym(abriv))),
+              BTC_r = log(BTC / lag(BTC))
+              )
+          
+          print(zeroint)#%>%
+          #   tidyr::drop_na() %>% 
+          #   dplyr::select(date, contains('_r')) %>% 
+          #   dplyr::mutate(
+          #     vol_BTC = slider::slide_dbl(
+          #       .x = BTC_r,
+          #       .f = sd,
+          #       .before = window,
+          #       .complete = TRUE
+          #     ) * sqrt(252),
+          #     'vol_{abriv}' = slider::slide_dbl(
+          #       .x = !!sym(paste0(abriv, "_r")),
+          #       .f = sd,
+          #       .before = window,
+          #       .complete = TRUE
+          #     ) * sqrt(252),
+          #     ratio = !!sym(paste0('vol_', abriv)) / vol_BTC,
+          #     correlation = slider::slide2_dbl(
+          #       .x = BTC_r,
+          #       .y = ETC_r,
+          #       .f = cor,
+          #       .before = window
+          #     ),
+          #     beta = correlation * ratio
+          #   ) %>% 
+          #   tidyr::drop_na() %>% 
+          #   dplyr::mutate(
+          #     cum_BTC = exp(cumsum(BTC_r)) - 1,
+          #     cum_ETC = exp(cumsum(ETC_r)) -1
+          #   )
+          #   
+          # 
+          # p1 <- zeroint %>%
+          #   tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+          #   dplyr::filter(grepl('ratio|beta|correlation', series)) %>% 
+          #   plotly::plot_ly(
+          #     x = ~date,
+          #     y = ~value,
+          #     color = ~series,
+          #     type = 'scatter',
+          #     mode = 'lines'
+          #     ) %>% 
+          #   plotly::layout(
+          #     yaxis = list(title = ''),
+          #     xaxis = list(title = '')
+          #   )
+          # 
+          # p2 <- zeroint %>%
+          #   tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+          #   dplyr::filter(grepl('vol', series)) %>% 
+          #   plotly::plot_ly(
+          #     x = ~date,
+          #     y = ~value,
+          #     color = ~series,
+          #     type = 'scatter',
+          #     mode = 'lines'
+          #     ) %>% 
+          #   plotly::layout(
+          #     yaxis = list(title = ''),
+          #     xaxis = list(title = '')
+          #   )
+          # 
+          # p3 <- plotly::subplot(p1, p2, nrows = 2, heights = c(.8, .2)) %>% 
+          #   plotly::layout(
+          #     legend = list(
+          #       title=list(text='<b> Series </b>'),
+          #       orientation = 'h',
+          #       x = .5
+          #       )
+          #     )
+          # 
+          # p4 <- zeroint %>%
+          #   dplyr::select(contains('_r')) %>% 
+          #   plotly::plot_ly(
+          #     x = ~BTC_r,
+          #     y = ~!!sym(paste0(abriv, "_r")),
+          #     type = 'scatter',
+          #     mode = 'markers',
+          #     name = 'Log Return Relationship',
+          #     showlegend = F
+          #     ) %>% 
+          #   plotly::layout(
+          #     yaxis = list(title = '{abriv} log ret'),
+          #     xaxis = list(title = 'BTC log ret')
+          #   )
+          # 
+          # final <- plotly::subplot(p4, p3, nrows = 2, margin = 0.05) %>% 
+          #   plotly::layout(
+          #     title = list(text = paste0('Log Return Relationship/Zero Intercept Beta From - ', startdate))
+          #   )
+          # 
+          # return(final)
+          }
+```
+
+```{r}
+plot.ZeroInterceptBeta('ETC-USD', '2010-01-01', 30)
+```
+
+ 
+```{r}
+# install.packages('crypto2')
+
+library(crypto2)
+
+crypto2::crypto_list() %>% 
+  dplyr::filter(is_active == 1)
+
 
 ```
- 
+

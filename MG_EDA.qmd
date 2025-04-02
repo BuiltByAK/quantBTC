@@ -4,6 +4,8 @@ format: html
 editor: visual
 ---
 
+
+
 ```{r}
 add_text <- function(plt, x, y, text, size, color){
   
@@ -63,6 +65,7 @@ candle
 
 ```
 
+
 ```{r}
 
 bit %>% 
@@ -85,6 +88,7 @@ rets %>%
          xaxis = list(title = ""),
          yaxis = list(title = "Log Returns", tickformat = '.1%'))
 ```
+
 
 ```{r stl}
 library(zoo)
@@ -122,50 +126,6 @@ stats::qqline(rets$closeclose, col = "red")
 
 garchdat <- rets %>% dplyr::select(date, closeclose)
 garchdat <- RTL::garch(garchdat)
-
-```
-
-```{r}
-library(tidyverse)
-library(patchwork)
-
-
-monthcor <- tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
-  get = 'stock.prices',
-  from = '2009-01-01'
-) %>% 
-  dplyr::select(date, symbol, close) %>% 
-  dplyr::group_by(symbol) %>% 
-  dplyr::mutate(r = log(close / lag(close))) %>% 
-  tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>% 
-  tidyr::drop_na() %>% 
-  dplyr::mutate(
-    cor30 = slider::slide2_dbl(
-      .x = `ETC-USD`,
-      .y = `BTC-USD`,
-      .f = ~cor(.x, .y),
-      .before = 30
-      
-    )
-  ) %>%
-  ggplot(aes(x = date, y = cor30)) + geom_line()
-
-path <- tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
-  get = 'stock.prices',
-  from = '2009-01-01'
-) %>% 
-  dplyr::select(date, symbol, close) %>% 
-  group_by(symbol) %>%
-  mutate(scaled_close = scale(close)[,1]) %>%  # Extract column from scale()
-  ungroup() %>% 
-  dplyr::filter(date >= '2014-09-18') %>% 
-  ggplot(aes(x = date, y = scaled_close, col = symbol)) + geom_line()
-
-
-path / monthcor
-
 
 ```
 
@@ -366,7 +326,6 @@ plot.ZeroInterceptBeta('XRP-USD', '2010-01-01', 30, 'chart')
 
 ```
 
-
  
 ```{r, Understanding Fees}
 # install.packages('crypto2')
@@ -557,5 +516,4 @@ crypto2::crypto_history(
   sleep = 1             
 )
 ```
-
 

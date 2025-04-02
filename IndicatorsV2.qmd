@@ -199,3 +199,75 @@ df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD")) %>%
   ggplot(aes(x = date, y = value, col = metric)) + geom_line() +
   facet_wrap(. ~ metric, scale = "free_y")
 ```
+
+```{r}
+
+miner_cap <- c("SplyMiner0HopAllUSD",
+               "SplyMiner1HopAllUSD",
+               "RevAllTimeUSD",
+               "PriceUSD",
+               "RevUSD",
+               "CapRealUSD",
+               "RevNtv") #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
+miner_outflows <- c("FlowMinerOut1HopAllNtv")
+
+df <- get_asset_metrics(
+  assets = "btc",
+  metrics = miner_cap,
+  frequency = "1d",
+  start_time = "2011-01-01"
+)
+
+df <- df %>%
+  mutate(
+    miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
+    miner_balance_lag = lag(miner_cap),
+    miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
+    momr = miner_outflow_est / RevNtv,
+    mctc = miner_cap / RevAllTimeUSD,
+    mcmr = miner_cap / CapRealUSD,
+    puell_multiple = RevUSD / rollmean(RevUSD, k = 365, fill = NA, align = "right")
+  )
+
+df <- df %>% drop_na() %>%
+  mutate(price_log = log(PriceUSD),
+         price_scaled_mult = scales::rescale(price_log, to = c(0, 1)),
+         mctc_scaled_mult = scales::rescale(mctc, to = c(0, 1)),
+         mcmr_scaled_mult = scales::rescale(mcmr, to = c(0, 1)),
+         puell_scaled = scales::rescale(puell_multiple, to = c(0,1)),
+         momr_scaled_mult = scales::rescale(mcmr, to = c(0,1))
+         )
+
+
+
+
+metrics_chart <- df %>% ggplot(aes(x = time)) +
+  geom_line(aes(y = price_scaled_mult, col = "Log Price"), size = 0.6) +
+  geom_line(aes(y = mctc_scaled_mult, col = "MCTC"), size = 0.3, alpha = 0.4) +
+  geom_line(aes(y = puell_scaled, col = "PM"), size = 0.3, alpha = 0.5) +
+  geom_line(aes(y = mcmr_scaled_mult, col = "MCMR"), size = 0.3, alpha = 0.2) +
+  geom_line(aes(y = momr_scaled_mult, col = "MOMR"), size = 0.3, alpha = 0.3)
+
+ggplotly(metrics_chart)
+```
+
+\
+200
+
+Time series of metrics for an asset.
+
+400
+
+Asset not found.
+
+401
+
+Requested resource requires authorization.
+
+403
+
+Requested resource is not available with supplied credentials.
+
+414
+
+Provided URI is too long. It must not be greater than 10000 symbols.

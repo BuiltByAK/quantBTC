@@ -202,13 +202,15 @@ df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD")) %>%
 
 ```{r}
 
-miner_cap <- c("SplyMiner0HopAllUSD",
-               "SplyMiner1HopAllUSD",
-               "RevAllTimeUSD",
-               "PriceUSD",
-               "RevUSD",
-               "CapRealUSD",
-               "RevNtv") #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
+miner_cap <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
+               "SplyMiner1HopAllUSD", #Supply from mining pools
+               "RevAllTimeUSD", #THermo Cap
+               "PriceUSD", # Price in usd
+               "RevUSD", #Revenue from mining
+               "CapRealUSD", #Realized Market Cap
+               "RevNtv", #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
+               "NVTAdjFF", # NetWork Value to Transactions Free Float
+               "TxTfrValAdjUSD") #Adjusted Transfer Value
 miner_outflows <- c("FlowMinerOut1HopAllNtv")
 
 df <- get_asset_metrics(
@@ -223,10 +225,13 @@ df <- df %>%
     miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
     miner_balance_lag = lag(miner_cap),
     miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
-    momr = miner_outflow_est / RevNtv,
-    mctc = miner_cap / RevAllTimeUSD,
-    mcmr = miner_cap / CapRealUSD,
-    puell_multiple = RevUSD / rollmean(RevUSD, k = 365, fill = NA, align = "right")
+    momr = miner_outflow_est / RevNtv, #Money Out Money Received
+    mctc = miner_cap / RevAllTimeUSD, #Miner cap to Thermo Cap
+    mcmr = miner_cap / CapRealUSD, #Miner cap to Relative Cap
+    puell_multiple = RevUSD / rollmean(RevUSD, k = 365, fill = NA, align = "right"), #Market cycles for miners
+    rctc = CapRealUSD / RevAllTimeUSD, #Realized cap to Thermo Cap
+    rvt = CapRealUSD / TxTfrValAdjUSD, #Essentially a P/E Ratio for BTC
+    rvtadj90 = CapRealUSD / rollmean(TxTfrValAdjUSD, k = 90, fill = NA, align = "right") #Realized value to Transaction Ratio
   )
 
 df <- df %>% drop_na() %>%
@@ -235,7 +240,11 @@ df <- df %>% drop_na() %>%
          mctc_scaled_mult = scales::rescale(mctc, to = c(0, 1)),
          mcmr_scaled_mult = scales::rescale(mcmr, to = c(0, 1)),
          puell_scaled = scales::rescale(puell_multiple, to = c(0,1)),
-         momr_scaled_mult = scales::rescale(mcmr, to = c(0,1))
+         momr_scaled_mult = scales::rescale(mcmr, to = c(0,1)),
+         rctc_scaled_mult = scales::rescale(rctc, to = c(0,1)),
+         NVTAdjFF_scaled = scales::rescale(NVTAdjFF, to = c(0,1)),
+         rvt_scaled = scales::rescale(rvt, to = c(0,1)),
+         rvtadj90_scaled = scales::rescale(rvtadj90, to = c(0,1))
          )
 
 
@@ -246,7 +255,11 @@ metrics_chart <- df %>% ggplot(aes(x = time)) +
   geom_line(aes(y = mctc_scaled_mult, col = "MCTC"), size = 0.3, alpha = 0.4) +
   geom_line(aes(y = puell_scaled, col = "PM"), size = 0.3, alpha = 0.5) +
   geom_line(aes(y = mcmr_scaled_mult, col = "MCMR"), size = 0.3, alpha = 0.2) +
-  geom_line(aes(y = momr_scaled_mult, col = "MOMR"), size = 0.3, alpha = 0.3)
+  geom_line(aes(y = momr_scaled_mult, col = "MOMR"), size = 0.3, alpha = 0.3) +
+  geom_line(aes(y = rctc_scaled_mult, col = "RCTC"), size = 0.3, alpha = 0.5) +
+  geom_line(aes(y = NVTAdjFF_scaled, col = "NVTAdjFF"), size = 0.3, alpha = 0.4) +
+  geom_line(aes(y = rvt_scaled, col = "RVT"), size = 0.3, alpha = 0.4) +
+  geom_line(aes(y = rvtadj90_scaled, col = "RVT_90"), size = 0.3, alpha = 0.4)
 
 ggplotly(metrics_chart)
 ```

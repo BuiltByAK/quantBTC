@@ -95,7 +95,7 @@ library(zoo)
 
 
 monthly <- bit %>%
-  tidyquant::tq_transmute(select = close, mutate_fun = periodReturn, period = "monthly", type = "log", col_rename = 'BITUSD') 
+  tidyquant::tq_transmute(select = close, mutate_fun = periodReturn, period = "monthly", type = "log", col_rename = 'BTC') 
 
 
 components <- monthly %>% 
@@ -103,7 +103,7 @@ components <- monthly %>%
   dplyr::select(-date) %>% 
   tsibble::as_tsibble(index = freq) %>% 
   fabletools::model(
-    feasts::STL(formula = BITUSD ~ season(window = 13))
+    feasts::STL(formula = BTC ~ season(window = 13))
   ) %>% 
   fabletools::components()
 
@@ -129,50 +129,6 @@ garchdat <- RTL::garch(garchdat)
 
 ```
 
-
-```{r}
-library(tidyverse)
-library(patchwork)
-
-
-monthcor <- tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
-  get = 'stock.prices',
-  from = '2009-01-01'
-) %>% 
-  dplyr::select(date, symbol, close) %>% 
-  dplyr::group_by(symbol) %>% 
-  dplyr::mutate(r = log(close / lag(close))) %>% 
-  tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = r) %>% 
-  tidyr::drop_na() %>% 
-  dplyr::mutate(
-    cor30 = slider::slide2_dbl(
-      .x = `ETC-USD`,
-      .y = `BTC-USD`,
-      .f = ~cor(.x, .y),
-      .before = 30
-      
-    )
-  ) %>%
-  ggplot(aes(x = date, y = cor30)) + geom_line()
-
-path <- tidyquant::tq_get(
-  c('ETC-USD', 'BTC-USD'),
-  get = 'stock.prices',
-  from = '2009-01-01'
-) %>% 
-  dplyr::select(date, symbol, close) %>% 
-  group_by(symbol) %>%
-  mutate(scaled_close = scale(close)[,1]) %>%  # Extract column from scale()
-  ungroup() %>% 
-  dplyr::filter(date >= '2014-09-18') %>% 
-  ggplot(aes(x = date, y = scaled_close, col = symbol)) + geom_line()
-
-
-path / monthcor
-
-
-```
 
 
 ```{r, Single Coin Relationship plot Function}
@@ -366,19 +322,198 @@ plot.ZeroInterceptBeta <- function(coinString, startdate, window, output){
 # for data make last Arg 'data'
 
 plot.ZeroInterceptBeta('ETC-USD', '2010-01-01', 30, 'chart') 
-plot.ZeroInterceptBeta('ETC-USD', '2010-01-01', 30, 'data') 
+plot.ZeroInterceptBeta('XRP-USD', '2010-01-01', 30, 'chart') 
 
 ```
 
  
-```{r}
+```{r, Understanding Fees}
 # install.packages('crypto2')
 
 library(crypto2)
 
-crypto2::crypto_list() %>% 
+activemkts <- crypto2::crypto_list() %>% 
   dplyr::filter(is_active == 1)
 
+activemkts %>% 
+  dplyr::arrange(desc(first_historical_data)) %>% 
+  dplyr::filter(first_historical_data <= '2018-01-01') # there are alot of shit coins
 
+
+binance_apiargs <- crypto2::exchange_list() %>% 
+  dplyr::filter(slug == 'binance') # for understanding Transaction costs
+
+
+crypto2::exchange_info(binance_apiargs) %>% 
+  dplyr::select(maker_fee, taker_fee)
+  
+
+crypto2::fiat_list()
+
+
+
+```
+Makers:
+Place limit orders that are not immediately filled, adding liquidity to the order book. 
+Their orders can be matched by other traders later, providing a price that other traders can take. 
+Maker fees are generally lower because they contribute to market stability. 
+Takers:
+Place market orders that are immediately filled, removing liquidity from the order book. 
+Taker fees are typically higher because they take advantage of the liquidity provided by makers. 
+How it works:
+When you place an order that is partially filled immediately, you pay a taker fee for the portion that is immediately filled. 
+The remaining portion of the order, if any, is placed on the order book and is subject to a maker fee when filled. 
+
+
+
+```{r, learning API}
+
+### This code retrieves global quote data (latest/historic) from coinmarketcap.com. ###
+
+start_date <- "20130429"
+end_date <- format(Sys.Date(), "%Y%m%d")
+
+broadmkt <- crypto2::crypto_global_quotes(
+  which = "historical",
+  start_date = start_date,
+  end_date = end_date,
+  interval = "daily",
+  quote = TRUE,         
+  convert = "USD",
+  requestLimit = 2200,  
+  sleep = 1             
+)
+
+changes <- broadmkt %>% 
+  dplyr::select(timestamp, btc_dominance, score, USD_total_market_cap, USD_altcoin_market_cap) %>% 
+  dplyr::rename(date = timestamp) %>% 
+  tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+  dplyr::group_by(series) %>% 
+  dplyr::mutate(change = log(value / lag(value))) %>% 
+  tidyr::drop_na() %>% 
+  tidyr::pivot_wider(id_cols = date, names_from = series, values_from = change)
+
+
+dat <- rets %>% 
+  dplyr::select(date, closeclose) %>% 
+  dplyr::left_join(changes)
+
+
+monthlychanges <- broadmkt %>% 
+  dplyr::select(timestamp, btc_dominance, score, USD_total_market_cap, USD_altcoin_market_cap) %>% 
+  dplyr::rename(date = timestamp) %>% 
+  tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+  dplyr::mutate(year = lubridate::year(date),
+                month = lubridate::month(date)) %>% 
+  dplyr::group_by(series, year, month) %>% 
+  dplyr::summarise(value = dplyr::last(value), .groups = 'drop') %>%
+  dplyr::group_by(series) %>% 
+  dplyr::mutate(change = log(value / lag(value))) %>% 
+  dplyr::ungroup() %>% 
+  tidyr::drop_na() %>% 
+   dplyr::mutate(date = lubridate::ceiling_date(as.Date(paste0(year, '-', month, '-', 01)), unit = 'month') - 1) %>% 
+  tidyr::pivot_wider(id_cols = date, names_from = series, values_from = change) %>% 
+  dplyr::mutate(freq = tsibble::yearmonth(date)) %>% 
+  dplyr::select(-date)
+  
+  
+monthlydat <- components %>% 
+  dplyr::select(freq, BTC) %>% 
+  dplyr::left_join(monthlychanges)
+
+```
+
+```{r, daily anything of value?}
+library(patchwork)
+
+xycharts <- list()
+
+for(col in names(dat)){
+  if(col == 'date' | col == 'closeclose'){
+    next
+  }else{
+    p <- dat %>% 
+      dplyr::select(closeclose, !!sym(col)) %>% 
+      ggplot(aes(x = lag(!!sym(col)), y = closeclose)) + geom_point()
+    
+    xycharts[[col]] <- p
+  }
+}
+
+(xycharts$btc_dominance | xycharts$score) / (xycharts$USD_total_market_cap | xycharts$USD_altcoin_market_cap)
+
+# not really on a daily basis - this was established. How do we use the monthly while determining strength
+
+```
+
+```{r, monthly anything of value?}
+library(patchwork)
+
+xycharts <- list()
+
+for(col in names(monthlydat)){
+  if(col == 'freq' | col == 'BTC'){
+    next
+  }else{
+    p <- monthlydat %>% 
+      dplyr::select(BTC, !!sym(col)) %>% 
+      ggplot(aes(x = lag(!!sym(col)), y = BTC)) + geom_point()
+    
+    xycharts[[col]] <- p
+  }
+}
+
+(xycharts$btc_dominance | xycharts$score) / (xycharts$USD_total_market_cap | xycharts$USD_altcoin_market_cap)
+```
+
+
+```{r}
+library(httr)
+
+## https://alternative.me/crypto/fear-and-greed-index/ fear and greed uses BTC vol, momentum, the only thing of value here really is the sentiment but without control
+## We lose creditibility 
+
+url <- "https://api.alternative.me/fng/?limit=0&format=json"
+
+fng_data <- jsonlite::fromJSON(httr::content(httr::GET(url), "text", encoding = "UTF-8"))
+
+fng <- fng_data$data %>%
+  as_tibble() %>% dplyr::select(timestamp, value, value_classification)
+
+fng <- fng %>%
+  mutate(date = as.Date(as.POSIXct(as.numeric(fng$timestamp), origin = "1970-01-01", tz = "UTC")),
+         fng_value = as.numeric(value),
+         fng_class = value_classification) %>% 
+  dplyr::select(-timestamp, -value, -value_classification) 
+
+fngchange <- fng %>% 
+  dplyr::mutate(fng_change = log(fng_value / lag(fng_value))) %>% 
+  dplyr::select(date, fng_change) %>% 
+  tidyr::drop_na()
+
+dat %>% 
+  dplyr::left_join(fngchange) %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(x = fng_change, y = closeclose)) + geom_point()
+```
+
+
+
+
+```{r}
+
+### Scrape the crypto currency historic market tables from ’CoinMarketCap’ https://coinmarketcap. com and display the results in a dataframe/tibble. This can be used to conduct analysis on the crypto f inancial markets or to attempt to predict future market movements or trends. ###
+
+bit <- activemkts %>% dplyr::filter(slug == 'bitcoin')
+
+crypto2::crypto_history(
+  coin_list = bit,
+  start_date = start_date,
+  end_date = end_date,
+  interval = "daily",
+  convert = "USD",
+  requestLimit = 2200,  
+  sleep = 1             
+)
 ```
 

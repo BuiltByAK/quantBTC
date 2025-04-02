@@ -7,7 +7,7 @@ editor: visual
 # Potential Indicators
 
 | Metric Name | Display Name | Category | Why It Matters |
-|---------------|---------------|---------------|-----------------------------|
+|----------------|----------------|----------------|-------------------------|
 | AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
 | TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
 | CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
@@ -179,7 +179,7 @@ df_long_remaining %>%
 ## **Final Model Variables Potentially:**
 
 | Type | Variable | Meaning |
-|-----------------|------------------------|-------------------------------|
+|------------------|------------------------|------------------------------|
 | Network Activity | AdrActCnt, TxCnt, TxTfrValAdjUSD | Daily on-chain usage and volume |
 | Mining & Revenue | RevUSD, FeeTotUSD | Miner revenue and fee dynamics |
 | Velocity | VelCur1yr | Turnover of supply over a year |
@@ -201,9 +201,13 @@ df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD")) %>%
 ```
 
 ```{r}
+library(coinmetrics)
+library(tidyverse)
+library(zoo)
+library(plotly)
 
-miner_cap <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
-               "SplyMiner1HopAllUSD", #Supply from mining pools
+miner_cap <- c("SplyMiner0HopAllNtv", #Supply from direct block makers
+               "SplyMiner1HopAllNtv", #Supply from mining pools
                "RevAllTimeUSD", #THermo Cap
                "PriceUSD", # Price in usd
                "RevUSD", #Revenue from mining
@@ -222,7 +226,7 @@ df <- get_asset_metrics(
 
 df <- df %>%
   mutate(
-    miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
+    miner_cap = SplyMiner0HopAllNtv + SplyMiner1HopAllNtv,
     miner_balance_lag = lag(miner_cap),
     miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
     momr = miner_outflow_est / RevNtv, #Money Out Money Received
@@ -263,8 +267,6 @@ metrics_chart <- df %>% ggplot(aes(x = time)) +
 
 ggplotly(metrics_chart)
 ```
-
-Make it all Percent changes
 
 \
 200

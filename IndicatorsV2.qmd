@@ -201,9 +201,13 @@ df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD")) %>%
 ```
 
 ```{r}
+library(coinmetrics)
+library(tidyverse)
+library(zoo)
+library(plotly)
 
-miner_cap <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
-               "SplyMiner1HopAllUSD", #Supply from mining pools
+miner_cap <- c("SplyMiner0HopAllNtv", #Supply from direct block makers
+               "SplyMiner1HopAllNtv", #Supply from mining pools
                "RevAllTimeUSD", #THermo Cap
                "PriceUSD", # Price in usd
                "RevUSD", #Revenue from mining
@@ -222,7 +226,7 @@ df <- get_asset_metrics(
 
 df <- df %>%
   mutate(
-    miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
+    miner_cap = SplyMiner0HopAllNtv + SplyMiner1HopAllNtv,
     miner_balance_lag = lag(miner_cap),
     miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
     momr = miner_outflow_est / RevNtv, #Money Out Money Received
@@ -331,8 +335,6 @@ plotly::subplot(p2, p1, nrows = 2, shareX = T, shareY = FALSE)
 
 
 ```
-
-Make it all Percent changes
 
 \
 200

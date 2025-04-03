@@ -7,7 +7,7 @@ editor: visual
 # Potential Indicators
 
 | Metric Name | Display Name | Category | Why It Matters |
-|---------------|---------------|---------------|-----------------------------|
+|----------------|----------------|----------------|-------------------------|
 | AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
 | TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
 | CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
@@ -179,7 +179,7 @@ df_long_remaining %>%
 ## **Final Model Variables Potentially:**
 
 | Type | Variable | Meaning |
-|-----------------|------------------------|-------------------------------|
+|------------------|------------------------|------------------------------|
 | Network Activity | AdrActCnt, TxCnt, TxTfrValAdjUSD | Daily on-chain usage and volume |
 | Mining & Revenue | RevUSD, FeeTotUSD | Miner revenue and fee dynamics |
 | Velocity | VelCur1yr | Turnover of supply over a year |
@@ -211,7 +211,7 @@ miner_cap <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
                "RevNtv", #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
                "NVTAdjFF", # NetWork Value to Transactions Free Float
                "TxTfrValAdjUSD") #Adjusted Transfer Value
-miner_outflows <- c("FlowMinerOut1HopAllNtv")
+miner_outflows <- c("FlowMinerOut1HopAllUSD")
 
 df <- get_asset_metrics(
   assets = "btc",
@@ -248,20 +248,88 @@ df <- df %>% drop_na() %>%
          )
 
 
+```
+
+```{r, relationship}
+bit <- tidyquant::tq_get(
+  'BTC-USD',
+  get = 'stock.prices',
+  from = '2014-09-17'
+) %>% 
+  tidyr::drop_na()
+
+rets <- bit %>% 
+  dplyr::mutate(
+    intraday = log(close / open),
+    closeclose = log(close / lag(close)),
+    overnight = log(open / lag(close))
+  ) %>% 
+  tidyr::drop_na()
+
+indicators <- df %>% 
+  dplyr::mutate(date = as.Date(time)) %>% 
+  dplyr::select(date, everything()) %>% 
+  dplyr::select(-c(asset, time)) %>% 
+  tidyr::pivot_longer(-date, names_to = 'series', values_to = 'value') %>% 
+  dplyr::group_by(series) %>% 
+  dplyr::mutate(change = log(value / lag(value))) %>% 
+  tidyr::pivot_wider(id_cols = date, names_from = series, values_from = change) %>% 
+  tidyr::drop_na() %>% 
+  dplyr::select(!contains('_scaled'))
 
 
-metrics_chart <- df %>% ggplot(aes(x = time)) +
-  geom_line(aes(y = price_scaled_mult, col = "Log Price"), size = 0.6) +
-  geom_line(aes(y = mctc_scaled_mult, col = "MCTC"), size = 0.3, alpha = 0.4) +
-  geom_line(aes(y = puell_scaled, col = "PM"), size = 0.3, alpha = 0.5) +
-  geom_line(aes(y = mcmr_scaled_mult, col = "MCMR"), size = 0.3, alpha = 0.2) +
-  geom_line(aes(y = momr_scaled_mult, col = "MOMR"), size = 0.3, alpha = 0.3) +
-  geom_line(aes(y = rctc_scaled_mult, col = "RCTC"), size = 0.3, alpha = 0.5) +
-  geom_line(aes(y = NVTAdjFF_scaled, col = "NVTAdjFF"), size = 0.3, alpha = 0.4) +
-  geom_line(aes(y = rvt_scaled, col = "RVT"), size = 0.3, alpha = 0.4) +
-  geom_line(aes(y = rvtadj90_scaled, col = "RVT_90"), size = 0.3, alpha = 0.4)
+eda <- rets %>% 
+  dplyr::left_join(indicators) %>% 
+  tidyr::drop_na() %>% 
+  dplyr::select(-c(symbol, open, high, low, close, volume, adjusted, intraday, overnight))
 
-ggplotly(metrics_chart)
+
+genxy <- function(df, targetexplan, lag){
+  
+  output <- list()
+  
+  for(name in names(df)){
+    if(name == 'date' | name == targetexplan){
+      next
+    }else{
+      
+      p <- df %>% 
+        dplyr::select(!!sym(targetexplan), !!sym(name)) %>% 
+        ggplot(aes(x = lag(!!sym(name), lag), y = !!sym(targetexplan))) + geom_point()
+      
+      
+      output[[name]] <- p
+    }
+  }
+  
+  return(output)
+}
+  
+dat <- df %>% 
+  dplyr::mutate(date = as.Date(time)) %>% 
+  dplyr::select(date, mcmr) %>% 
+  dplyr::mutate(distance = mcmr - 1,
+                flag = ifelse(distance >=  0, TRUE, FALSE)) %>% 
+  dplyr::left_join(rets) %>% 
+  tidyr::drop_na() %>% 
+  dplyr::select(date, close, mcmr)
+
+p1 <- plotly::plot_ly() %>% 
+  plotly::add_trace(x = ~date, y = ~mcmr, type = 'scatter', mode = 'lines', name = 'mcmr', data = dat)
+
+p2 <- plotly::plot_ly() %>% 
+  plotly::add_trace(x = ~date, y = ~close, type = 'scatter', mode = 'lines', name = 'close', data = dat)
+
+
+plotly::subplot(p2, p1, nrows = 2, shareX = T, shareY = FALSE)
+
+
+
+
+
+  
+
+
 ```
 
 Make it all Percent changes

@@ -18,33 +18,20 @@ editor: visual
 
 ```
 
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| Metric Name         | Display Name                     | Category     | Why It Matters                                                                 |
-+=====================+==================================+==============+================================================================================+
-| AdrActCnt           | Active Addr Cnt                  | Addresses    | Measures user adoption; rising activity suggests increasing demand and usage.  |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| TxTfrValAdjUSD      | Xfer'd Val, Adj (USD)            | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| CapMVRVCur          | MVRV (Market Cap / Realized Cap) | Market       | Helps identify undervalued (\<1) or overvalued (\>3) conditions.               |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| NVTAdj              | NVT                              | Economics    | Crypto’s P/E ratio; high = overvalued, low = undervalued, price signals.       |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| SplyAct1yr          | 1 Year Active Supply             | Supply       | High active supply = greater utility/liquidity; shows coin movement.           |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| FlowInExUSD         | Exchange Deposits (USD)          | Exchange     | High inflow = sell pressure; useful for spotting potential short-term dips.    |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| FlowOutExUSD        | Exchange Withdrawals (USD)       | Exchange     | High outflow = accumulation; often precedes upward price movement.             |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| CapRealUSD          | Realized Market Cap (USD)        | Market       | Helps understand market cost basis; compare to cap for investor sentiment.     |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| ROI30d / ROI1yr     | ROI, 30 Days / 1 Year            | Market       | Shows performance momentum; useful for trend continuation analysis.            |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| SplyCur             | Current Supply                   | Supply       | Needed to evaluate scarcity; combine with inflation metrics.                   |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| IssContPctAnn       | Annual Inflation Rate            | Supply       | Annual inflation impacts tokenomics; lower inflation = more bullish.           |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
-| HashRate / DiffMean | Mean Hash Rate / Mean Difficulty | Mining       | Indicates miner confidence and network security; often bullish.                |
-+---------------------+----------------------------------+--------------+--------------------------------------------------------------------------------+
+| Metric Name | Display Name | Category | Why It Matters |
+|----|----|----|----|
+| AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
+| TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
+| CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
+| NVTAdj | NVT | Economics | Crypto’s P/E ratio; high = overvalued, low = undervalued, price signals. |
+| SplyAct1yr | 1 Year Active Supply | Supply | High active supply = greater utility/liquidity; shows coin movement. |
+| FlowInExUSD | Exchange Deposits (USD) | Exchange | High inflow = sell pressure; useful for spotting potential short-term dips. |
+| FlowOutExUSD | Exchange Withdrawals (USD) | Exchange | High outflow = accumulation; often precedes upward price movement. |
+| CapRealUSD | Realized Market Cap (USD) | Market | Helps understand market cost basis; compare to cap for investor sentiment. |
+| ROI30d / ROI1yr | ROI, 30 Days / 1 Year | Market | Shows performance momentum; useful for trend continuation analysis. |
+| SplyCur | Current Supply | Supply | Needed to evaluate scarcity; combine with inflation metrics. |
+| IssContPctAnn | Annual Inflation Rate | Supply | Annual inflation impacts tokenomics; lower inflation = more bullish. |
+| HashRate / DiffMean | Mean Hash Rate / Mean Difficulty | Mining | Indicates miner confidence and network security; often bullish. |
 
 ```{r, data_setup_and_metrics}
 library(coinmetrics)
@@ -433,13 +420,13 @@ formula_all <- as.formula(
 | Type | Variable | Meaning |
 |------|----------|---------|
 
-+----------------------+----------------------------------------+---------------------------------+
+|  |  |  |
+|----|----|----|
 | **Network Activity** | `AdrActCnt`, `TxCnt`, `TxTfrValAdjUSD` | Daily on-chain usage and volume |
-+----------------------+----------------------------------------+---------------------------------+
 
-+----------------------+-----------------------+--------------------------------+
+|                      |                       |                                |
+|----------------------|-----------------------|--------------------------------|
 | **Mining & Revenue** | `RevUSD`, `FeeTotUSD` | Miner revenue and fee dynamics |
-+----------------------+-----------------------+--------------------------------+
 
 |              |             |                                |
 |--------------|-------------|--------------------------------|
@@ -453,9 +440,9 @@ formula_all <- as.formula(
 |---------------|-----------------|-----------------------------|
 | **Dominance** | `btc_dominance` | Market cap dominance of BTC |
 
-+--------------------------+--------------------------------------------+-------------------------------------------------------+
+|  |  |  |
+|----|----|----|
 | **Supply Concentration** | `SplyAdrBalNtv1K`, `SplyFF`, `SplyAct180d` | Whale wallets, free float, and recent supply activity |
-+--------------------------+--------------------------------------------+-------------------------------------------------------+
 
 ```{r, forward_looking_plots}
 
@@ -918,13 +905,13 @@ formula_all <- as.formula(
 
 ```
 
-+-------------+-----------+----------+-----------+-----------+
-| roll_window | mean_mult | sd_mult  | stop_loss | sharpe    |
-|             |           |          |           |           |
-| \<dbl\>     | \<dbl\>   | \<dbl\>  | \<dbl\>   | \<dbl\>   |
-+============:+==========:+=========:+==========:+==========:+
-| 90          | 0.2       | 2        | 4         | 0.1691046 |
-+-------------+-----------+----------+-----------+-----------+
++-------------+-----------+---------+-----------+-----------+
+| roll_window | mean_mult | sd_mult | stop_loss | sharpe    |
+|             |           |         |           |           |
+| \<dbl\>     | \<dbl\>   | \<dbl\> | \<dbl\>   | \<dbl\>   |
++============:+==========:+========:+==========:+==========:+
+| 90          | 0.2       | 2       | 4         | 0.1691046 |
++-------------+-----------+---------+-----------+-----------+
 
 ```{r, testing_our_indicator}
 # strategy_plot <- df_final_live %>%

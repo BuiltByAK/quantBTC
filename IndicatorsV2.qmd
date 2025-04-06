@@ -7,7 +7,7 @@ editor: visual
 # Potential Indicators
 
 | Metric Name | Display Name | Category | Why It Matters |
-|----------------|----------------|----------------|-------------------------|
+|-----------------|-----------------|-----------------|-----------------------|
 | AdrActCnt | Active Addr Cnt | Addresses | Measures user adoption; rising activity suggests increasing demand and usage. |
 | TxTfrValAdjUSD | Xfer'd Val, Adj (USD) | Transactions | Captures meaningful on-chain value transfer; indicates real economic activity. |
 | CapMVRVCur | MVRV (Market Cap / Realized Cap) | Market | Helps identify undervalued (\<1) or overvalued (\>3) conditions. |
@@ -23,7 +23,7 @@ editor: visual
 
 ## **Extracting Data and Metrics:**
 
-```{r, data_setup_and_metrics}
+```{r, data_fundamental}
 library(coinmetrics)
 library(tidyverse)
 library(lubridate)
@@ -73,13 +73,6 @@ btc_metrics <- c(
   "FlowInExUSD",            # USD inflow into exchanges (deposits) — Behavioral
   "FlowOutExUSD",           # USD outflow from exchanges (withdrawals) — Behavioral
 
-  # ==== VALUATION METRICS ====
-  "CapMVRVCur",             # MVRV (Market Cap / Realized Cap) — Valuation
-  "NVTAdj",                 # NVT (adj. Network Value / Tx Volume) — Valuation
-  "NVTAdj90",               # 90d Moving Avg of NVT — Valuation
-  "CapRealUSD",             # Realized Cap in USD — Valuation
-  "CapMrktCurUSD",          # Market Cap using current supply — Valuation
-
   # ==== MINING & FEES ====
   "HashRate",               # Mean network hash rate — Fundamental
   "DiffMean",               # Average difficulty (mining) — Fundamental
@@ -89,8 +82,6 @@ btc_metrics <- c(
 
   # ==== MARKET PERFORMANCE ====
   "PriceUSD",               # BTC price in USD — Market
-  "ROI30d",                 # Return on investment over 30 days — Market
-  "ROI1yr",                 # Return on investment over 1 year — Market
 
   # ==== OTHER ECONOMIC METRICS ====
   "VelCur1yr"              # Velocity = Tx Volume / Supply (1 Year) — Valuation/Economic
@@ -114,12 +105,12 @@ df_clean_full <- df_clean_full %>%
   arrange(time) %>%
   mutate(
     daily_return = (PriceUSD / lag(PriceUSD) - 1) * 100,
-    monthly_returns = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD) * 100,
+    monthly_returns_forward = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD) * 100,
     date = as.Date(time)
   ) %>%
   drop_na(daily_return) %>%
   dplyr::select(-time) %>%
-  dplyr::select(date, asset, PriceUSD, daily_return, ROI30d, btc_dominance, everything())
+  dplyr::select(date, asset, PriceUSD, daily_return, monthly_returns_forward, btc_dominance, everything())
 
 
 # --- Get Fear and Greed Index ---
@@ -140,39 +131,7 @@ fng <- fng %>% dplyr::select(-timestamp, -value, -value_classification) %>% arra
 df_with_fng <- df_clean_full %>%
   left_join(fng, by = "date") %>%
   drop_na() %>%
-  dplyr::select(date, asset, PriceUSD, daily_return, ROI30d, fng_value, fng_class, everything())
-
-```
-
-```{r, Converting_to_long_df}
-
-df_long <- df_clean_full %>% select(-asset, -`FlowInExUSD-status`, -`FlowInExUSD-status-time`, -`FlowOutExUSD-status`, -`FlowOutExUSD-status-time`) %>%
-  mutate(PriceUSD_Scaled = scales::rescale(PriceUSD, to = range(CapMVRVCur))) %>%
-  pivot_longer(-date, names_to = "metric", values_to = "value")
-
-
-```
-
-```{r}
-
-df_long_subset <- df_long %>%
-  filter(metric %in% c("PriceUSD", "AdrActCnt", "TxCnt", "TxTfrValAdjUSD", "RevUSD", "FeeTotUSD", "VelCur1yr", "btc_dominance", "SplyAdrBalNtv1K", "SplyFF", "SplyAct180d"))
-
-df_long_subset %>% ggplot(aes(x = date, y = value, col = metric)) + geom_line() +
-  facet_wrap(metric ~ ., scales = "free_y") + theme(legend.position = "none")
-```
-
-```{r}
-plotted_metrics <- c("AdrActCnt", "TxCnt", "TxTfrValAdjUSD", "RevUSD", "FeeTotUSD", "VelCur1yr", "btc_dominance", "SplyAdrBalNtv1K", "SplyFF", "SplyAct180d")
-
-df_long_remaining <- df_long %>%
-  filter(!(metric %in% plotted_metrics))
-
-df_long_remaining %>%
-  ggplot(aes(x = date, y = value, col = metric)) +
-  geom_line() + 
-  facet_wrap(metric ~ ., scales = "free_y") +
-  theme(legend.position = "none")
+  dplyr::select(date, asset, PriceUSD, daily_return, monthly_returns_forward, fng_value, fng_class, everything())
 
 ```
 
@@ -187,46 +146,35 @@ df_long_remaining %>%
 | Dominance | btc_dominance | Market cap dominance of BTC |
 | Supply Concentration | SplyAdrBalNtv1K, SplyFF, SplyAct180d | Whale wallets, free float, and recent supply activity |
 
-```{r}
-
-df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD_Scaled")) %>%
-  ggplot(aes(x = date, y = value, col = metric)) + geom_line()
-```
-
-```{r}
-
-df_long %>% filter(metric %in% c("CapMVRVCur", "PriceUSD")) %>%
-  ggplot(aes(x = date, y = value, col = metric)) + geom_line() +
-  facet_wrap(. ~ metric, scale = "free_y")
-```
-
-```{r}
+```{r, technical_indicators}
 library(coinmetrics)
 library(tidyverse)
 library(zoo)
 library(plotly)
 
-miner_cap <- c("SplyMiner0HopAllNtv", #Supply from direct block makers
-               "SplyMiner1HopAllNtv", #Supply from mining pools
+technical_indicators <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
+               "SplyMiner1HopAllUSD", #Supply from mining pools
                "RevAllTimeUSD", #THermo Cap
                "PriceUSD", # Price in usd
                "RevUSD", #Revenue from mining
                "CapRealUSD", #Realized Market Cap
                "RevNtv", #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
                "NVTAdjFF", # NetWork Value to Transactions Free Float
-               "TxTfrValAdjUSD") #Adjusted Transfer Value
+               "TxTfrValAdjUSD", #Adjusted Transfer Value
+               "CapMVRVFF",#The Ratio of the sum USD Value of the current supply to the sum of realized USD value of current supply (CapMkrtFFUSD / CapRealUSD)
+               ) 
 miner_outflows <- c("FlowMinerOut1HopAllUSD")
 
 df <- get_asset_metrics(
   assets = "btc",
-  metrics = miner_cap,
+  metrics = technical_indicators,
   frequency = "1d",
   start_time = "2011-01-01"
 )
 
 df <- df %>%
   mutate(
-    miner_cap = SplyMiner0HopAllNtv + SplyMiner1HopAllNtv,
+    miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
     miner_balance_lag = lag(miner_cap),
     miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
     momr = miner_outflow_est / RevNtv, #Money Out Money Received
@@ -238,7 +186,7 @@ df <- df %>%
     rvtadj90 = CapRealUSD / rollmean(TxTfrValAdjUSD, k = 90, fill = NA, align = "right") #Realized value to Transaction Ratio
   )
 
-df <- df %>% drop_na() %>%
+scaled_df <- df %>% drop_na() %>%
   mutate(price_log = log(PriceUSD),
          price_scaled_mult = scales::rescale(price_log, to = c(0, 1)),
          mctc_scaled_mult = scales::rescale(mctc, to = c(0, 1)),
@@ -248,13 +196,14 @@ df <- df %>% drop_na() %>%
          rctc_scaled_mult = scales::rescale(rctc, to = c(0,1)),
          NVTAdjFF_scaled = scales::rescale(NVTAdjFF, to = c(0,1)),
          rvt_scaled = scales::rescale(rvt, to = c(0,1)),
-         rvtadj90_scaled = scales::rescale(rvtadj90, to = c(0,1))
+         rvtadj90_scaled = scales::rescale(rvtadj90, to = c(0,1)),
+         mvrv_scaled = scales::rescale(CapMVRVFF, to = c(0,1))
          )
 
 
 ```
 
-```{r, relationship}
+```{r, relationship_technical}
 bit <- tidyquant::tq_get(
   'BTC-USD',
   get = 'stock.prices',
@@ -336,23 +285,21 @@ plotly::subplot(p2, p1, nrows = 2, shareX = T, shareY = FALSE)
 
 ```
 
-\
-200
+```{r}
+library(tidyquant)
+df_usdi <- tq_get(
+  "DX-Y.NYB",
+  get = "stock.prices",
+  from = "2011-01-01"
+) %>% select(date, adjusted) %>%
+  mutate(dollar_index = adjusted) %>%
+  select(-adjusted)
 
-Time series of metrics for an asset.
+df_econ <- tq_get(
+  c("GS10", "CPIAUCSL", "M2SL", "FEDFUNDS"),
+  get = "economic.data",
+  from = "2011-01-01"
+)
 
-400
 
-Asset not found.
-
-401
-
-Requested resource requires authorization.
-
-403
-
-Requested resource is not available with supplied credentials.
-
-414
-
-Provided URI is too long. It must not be greater than 10000 symbols.
+```

@@ -1,0 +1,648 @@
+---
+title: "Indicators V3"
+format: html
+editor: visual
+---
+
+## Data, metrics, and indicators
+
+```{r, data_fundamental_and_fear_n_greed}
+library(coinmetrics)
+library(tidyverse)
+library(lubridate)
+library(httr)
+library(jsonlite)
+library(car)
+library(crypto2)
+
+# Define date range
+start_date <- "20130429"
+end_date <- format(Sys.Date(), "%Y%m%d")
+
+# Pull daily global market data
+global_crypto_data <- crypto_global_quotes(
+  which = "historical",
+  start_date = start_date,
+  end_date = end_date,
+  interval = "daily",
+  quote = TRUE,         # get full price/market data
+  convert = "USD",
+  requestLimit = 2200,  # max limit
+  sleep = 1             # give it breathing room to avoid throttling
+)
+
+btc_dom_data <- global_crypto_data %>% 
+  mutate(time = as.Date(timestamp)) %>%
+  dplyr::select(time, btc_dominance)
+
+
+# Define your metric list for BTC
+btc_metrics <- c(
+  # ==== NETWORK ACTIVITY ====
+  "AdrActCnt",              # Active addresses count — Fundamental
+  "TxCnt",                  # Total number of transactions per day — Fundamental
+  "TxTfrValAdjUSD",         # Adjusted transfer volume in USD — Fundamental
+  "SplyAct1yr",             # Supply active in the past 1 year — Fundamental
+  "SplyAct180d",            # Supply active in past 180 days — Fundamental
+  "SplyAdrBalNtv1K",        # Addresses holding ≥ 1,000 BTC — Fundamental
+
+  # ==== SUPPLY & DISTRIBUTION ====
+  "SplyCur",                # Current supply in circulation — Fundamental
+  "SplyFF",                 # Free float supply — Fundamental
+  "IssContPctAnn",          # Annual inflation rate (new issuance %) — Fundamental
+  "SER",                    # Supply Equality Ratio — Fundamental
+
+  # ==== EXCHANGE FLOWS ====
+  "FlowInExUSD",            # USD inflow into exchanges (deposits) — Behavioral
+  "FlowOutExUSD",           # USD outflow from exchanges (withdrawals) — Behavioral
+
+  # ==== MINING & FEES ====
+  "HashRate",               # Mean network hash rate — Fundamental
+  "DiffMean",               # Average difficulty (mining) — Fundamental
+  "RevUSD",                 # Miner revenue in USD — Fundamental
+  "FeeTotUSD",              # Total network transaction fees in USD — Fundamental
+  "FeeMeanUSD",             # Average transaction fee (USD) — Fundamental
+
+  # ==== MARKET PERFORMANCE ====
+  "PriceUSD",               # BTC price in USD — Market
+
+  # ==== OTHER ECONOMIC METRICS ====
+  "VelCur1yr"              # Velocity = Tx Volume / Supply (1 Year) — Valuation/Economic
+
+)
+
+
+# Pull CoinMetrics data
+df <- get_asset_metrics(
+  assets = "btc",
+  metrics = btc_metrics,
+  start_time = "2013-04-29",
+  frequency = "1d"
+)
+
+df_clean_full <- df %>%
+  left_join(btc_dom_data, by = "time")
+
+# Clean and process BTC data (main 2014 dataset onward)
+df_clean_full <- df_clean_full %>%
+  arrange(time) %>%
+  mutate(
+    daily_return = (PriceUSD / lag(PriceUSD) - 1) * 100,
+    monthly_returns_forward = ((lead(PriceUSD, 30) - PriceUSD) / PriceUSD) * 100,
+    date = as.Date(time)
+  ) %>%
+  drop_na(daily_return) %>%
+  dplyr::select(-time) %>%
+  dplyr::select(date, asset, PriceUSD, daily_return, monthly_returns_forward, btc_dominance, everything())
+
+
+# --- Get Fear and Greed Index ---
+url <- "https://api.alternative.me/fng/?limit=0&format=json"
+fng_data <- fromJSON(content(GET(url), "text", encoding = "UTF-8"))
+
+fng <- fng_data$data %>%
+  as_tibble() %>% dplyr::select(timestamp, value, value_classification)
+
+fng <- fng %>%
+  mutate(date = as.Date(as.POSIXct(as.numeric(fng$timestamp), origin = "1970-01-01", tz = "UTC")),
+         fng_value = as.numeric(value),
+         fng_class = value_classification)
+
+fng <- fng %>% dplyr::select(-timestamp, -value, -value_classification) %>% arrange(date) 
+
+# Merge into CoinMetrics data
+df_with_fng <- df_clean_full %>%
+  left_join(fng, by = "date") %>%
+  drop_na() %>%
+  dplyr::select(date, asset, PriceUSD, daily_return, monthly_returns_forward, fng_value, fng_class, everything())
+```
+
+```{r, technical_indicators, warning = FALSE}
+library(coinmetrics)
+library(tidyverse)
+library(zoo)
+library(plotly)
+
+technical_indicators <- c("SplyMiner0HopAllUSD", #Supply from direct block makers
+               "SplyMiner1HopAllUSD", #Supply from mining pools
+               "RevAllTimeUSD", #THermo Cap
+               "PriceUSD", # Price in usd
+               "RevUSD", #Revenue from mining
+               "CapRealUSD", #Realized Market Cap
+               "RevNtv", #RevNtv = Miner Revenue (the sum of funds sent to miners over a time window and is calculated as RevNtv)
+               "NVTAdjFF", # NetWork Value to Transactions Free Float
+               "TxTfrValAdjUSD", #Adjusted Transfer Value
+               "CapMVRVFF"#The Ratio of the sum USD Value of the current supply to the sum of realized USD value of current supply (CapMkrtFFUSD / CapRealUSD)
+               )
+
+df <- get_asset_metrics(
+  assets = "btc",
+  metrics = technical_indicators,
+  frequency = "1d",
+  start_time = "2011-01-01"
+)
+
+df <- df %>%
+  mutate(
+    miner_cap = SplyMiner0HopAllUSD + SplyMiner1HopAllUSD,
+    miner_balance_lag = lag(miner_cap),
+    miner_outflow_est = miner_balance_lag + RevNtv - miner_cap,
+    momr = miner_outflow_est / RevNtv, #Money Out Money Received
+    mctc = miner_cap / RevAllTimeUSD, #Miner cap to Thermo Cap
+    mcmr = miner_cap / CapRealUSD, #Miner cap to Relative Cap
+    puell_multiple = RevUSD / rollmean(RevUSD, k = 365, fill = NA, align = "right"), #Market cycles for miners
+    rctc = CapRealUSD / RevAllTimeUSD, #Realized cap to Thermo Cap
+    rvt = CapRealUSD / TxTfrValAdjUSD, #Essentially a P/E Ratio for BTC
+    rvtadj90 = CapRealUSD / rollmean(TxTfrValAdjUSD, k = 90, fill = NA, align = "right"), #Realized value to Transaction Ratio
+    date = as.Date(time),
+    PriceUSD_log = log(PriceUSD)
+  )
+
+df_technical <- df %>%
+  select(date, PriceUSD_log, momr, mctc, mcmr, puell_multiple, rctc, rvtadj90) %>% drop_na()
+
+
+```
+
+```{r, plot_function}
+
+library(plotly)
+library(dplyr) 
+
+create_simple_subplot <- function(data, date_col, price_col, normalize = FALSE, layout_mode = "stacked") {
+  
+  # Identify metric columns
+  metric_cols <- setdiff(names(data), c(date_col, price_col))
+  
+  # Normalize if requested
+  if (normalize) {
+    data <- data %>%
+      mutate(across(all_of(metric_cols),
+                    ~ (.-mean(., na.rm = TRUE)) / sd(., na.rm = TRUE),
+                    .names = "z_{.col}"))
+    metric_cols <- paste0("z_", metric_cols)
+  }
+  
+  # Filter for numeric metrics only
+  numeric_metrics <- metric_cols[sapply(as.data.frame(data)[, metric_cols],
+                                        is.numeric)]
+  
+  date_formula <- as.formula(paste0("~", date_col))
+  price_formula <- as.formula(paste0("~", price_col))
+  
+  if (layout_mode == "overlay") {
+    # Overlay plot: everything on one panel
+    p_overlay <- plot_ly(data, x = date_formula)
+    
+    # Add price
+    p_overlay <- p_overlay %>%
+      add_trace(y = price_formula, type = 'scatter', mode = 'lines',
+                name = price_col)
+    
+    # Add all metric traces
+    for (metric in numeric_metrics) {
+      p_overlay <- p_overlay %>%
+        add_trace(y = as.formula(paste0("~", metric)), type = 'scatter',
+                  mode = 'lines', name = metric)
+    }
+    
+    return(
+      p_overlay %>%
+        layout(title = paste(price_col, "vs", 
+                             if (normalize) "Normalized Metrics" else "Metrics"),
+               xaxis = list(title = "", fixedrange = FALSE),
+               yaxis = list(
+                 title = if (normalize) "Z-Score / Price" else "Values"),
+               hovermode = 'x unified',
+               legend = list(orientation = "h", x = 0.5, xanchor = "center",
+                             y = -0.1),
+               margin = list(b = 80))
+    )
+  }
+  
+  # Default: stacked layout
+  p_price <- plot_ly(data, x = date_formula) %>%
+    add_trace(y = price_formula, type = 'scatter', mode = 'lines', 
+              name = price_col) %>%
+    layout(yaxis = list(title = price_col))
+  
+  p_metrics <- plot_ly(data, x = date_formula)
+  for (metric in numeric_metrics) {
+    p_metrics <- p_metrics %>%
+      add_trace(y = as.formula(paste0("~", metric)), type = 'scatter',
+                mode = 'lines', name = metric)
+  }
+  p_metrics <- p_metrics %>%
+    layout(yaxis = list(title = if (normalize) "Z-Score" else "Metric Values"))
+  
+  subplot(p_price, p_metrics, nrows = 2, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste(price_col, "vs",
+                         if (normalize) "Normalized Metrics" else "Metrics"),
+           xaxis = list(title = ""),
+           hovermode = 'x unified',
+           legend = list(orientation = "h", x = 0.5,
+                         xanchor = "center", y = -0.2))
+}
+
+
+
+```
+
+```{r, macro_economic_data}
+library(tidyquant)
+library(zoo)
+
+start_date <- as.Date("2010-12-26")
+end_date <- Sys.Date()
+
+macro_metrics <- c(
+  "CPIAUCNS", #CPI
+  "DFII10", #Real Yield 10-yr
+  "UNRATE", #Unemployment Rate
+  "M2SL", #M2 Money Supply
+  "DTWEXBGS",
+  "VIXCLS",
+  "T10Y2Y" 
+)
+
+macro_data <- tq_get(
+  macro_metrics,
+  get = "economic.data",
+  from = start_date %m-% months(13),
+  to = end_date) %>%
+  select(date, symbol, price)
+
+macro_data_processed <- macro_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(
+    value_processed = case_when(
+      symbol %in% c("CPIAUCNS", "M2SL") ~ (price / lag(price, 12) - 1)*100,
+      TRUE ~ price
+    )
+  ) %>%
+  ungroup() %>%
+  select(symbol, date, value_processed) %>%
+  filter(!is.na(value_processed))
+
+macro_data_wide <- macro_data_processed %>%
+  pivot_wider(names_from = symbol, values_from = value_processed) %>%
+  rename(CPI_YoY = CPIAUCNS,
+         Real_Yield_10Y = DFII10,
+         Unemp_Rate = UNRATE,
+         M2_YoY = M2SL,
+         DXY = DTWEXBGS,
+         VIX = VIXCLS,
+         Yield_Curve_10Y2Y = T10Y2Y)
+
+monthly_aligned <- macro_data_wide %>%
+  select(date, CPI_YoY, Unemp_Rate, M2_YoY) %>%
+  drop_na()
+
+all_dates_df <- tibble(date = seq.Date(start_date, end_date, by = "day"))
+
+macro_df_aligned <- all_dates_df %>%
+  left_join(macro_data_wide, by = "date")
+
+macro_df_filled <- macro_df_aligned %>%
+  mutate(across(
+    .cols = c(CPI_YoY, Real_Yield_10Y, Unemp_Rate, M2_YoY, DXY, VIX, Yield_Curve_10Y2Y),
+    .fns = ~ zoo::na.locf(.x, na.rm = FALSE)
+  )) %>% drop_na()
+```
+
+```{r, fundamental_chain_data}
+
+fundamental_metrics <- c(
+  # ==== NETWORK ACTIVITY ====
+  "AdrActCnt",              # Active addresses count — Fundamental
+  "TxCnt",                  # Total number of transactions per day — Fundamental
+  "TxTfrValAdjUSD",         # Adjusted transfer volume in USD — Fundamental
+  "SplyAct1d",             # Supply active in the past day — Fundamental
+  "SplyAct180d",            # Supply active in past 180 days — Fundamental
+  "SplyAdrBalNtv1K",        # Addresses holding ≥ 1,000 BTC — Fundamental
+  "SplyFF",                 # Free float supply — Fundamental
+
+  # ==== EXCHANGE FLOWS ====
+  "FlowInExUSD",            # USD inflow into exchanges (deposits) — Behavioral
+  "FlowOutExUSD",           # USD outflow from exchanges (withdrawals) — Behavioral
+
+  # ==== MINING & FEES ====
+  "HashRate",               # Mean network hash rate — Fundamental
+  "DiffMean",               # Average difficulty (mining) — Fundamental
+  "RevUSD",                 # Miner revenue in USD — Fundamental
+
+  # ==== MARKET PERFORMANCE ====
+  "PriceUSD", # BTC price in USD — Market
+  "CapMVRVFF"
+)
+
+
+# Pull CoinMetrics data
+df_fundamental <- get_asset_metrics(
+  assets = "btc",
+  metrics = btc_metrics,
+  start_time = "2010-12-31",
+  frequency = "1d"
+)
+
+df_fundamental <- df_fundamental %>%
+  mutate(
+    forward_30d_log_return = log(lead(PriceUSD, 30) / PriceUSD),
+    daily_log_return = log(PriceUSD/lag(PriceUSD)),
+    date = as.Date(time)) %>%
+  select(date, daily_log_return, forward_30d_log_return, AdrActCnt, CapMVRVFF, FlowInExUSD, FlowOutExUSD, HashRate, RevUSD, SplyAct1d, SplyAdrBalNtv1K, SplyFF, TxCnt) %>% drop_na(daily_log_return)
+```
+
+```{r, garch_function}
+library(rugarch)
+library(dplyr)
+library(xts)
+library(zoo)
+add_rolling_garch_vol <- function(data, return_col, date_col, window_size = 252, refit_every = 22,
+                                  refit_window = "moving", garch_spec = NULL, annualize = FALSE,
+                                  new_col_name = "garch_volatility") {
+
+  stopifnot(date_col %in% names(data), return_col %in% names(data))
+
+  data <- data %>% arrange(.data[[date_col]])
+  returns_df <- data %>%
+    select(all_of(c(date_col, return_col))) %>%
+    filter(!is.na(.data[[return_col]]))
+
+  if (nrow(returns_df) < window_size) {
+    stop("Not enough observations for GARCH rolling window.")
+  }
+
+  returns_xts <- xts(as.numeric(returns_df[[return_col]]),
+                     order.by = as.Date(returns_df[[date_col]]))
+
+  garch_spec <- garch_spec %||% ugarchspec(
+    variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
+    mean.model = list(armaOrder = c(0, 0), include.mean = FALSE)
+  )
+  stopifnot(inherits(garch_spec, "uGARCHspec"))
+
+  forecast_len <- nrow(returns_xts) - window_size
+  if (forecast_len <= 0) stop("Forecast length must be positive.")
+
+  roll_garch <- tryCatch({
+    ugarchroll(
+      garch_spec, data = returns_xts, n.ahead = 1, forecast.length = forecast_len,
+      refit.every = refit_every, refit.window = refit_window, window.size = window_size,
+      solver = "hybrid", calculate.VaR = FALSE, keep.coef = TRUE
+    )
+  }, error = function(e) stop("ugarchroll error: ", e$message))
+
+  sigma_forecast <- tryCatch({
+    # Search for "sigmaFor" or "density$Sigma"
+    possible_sigma <- list(
+      roll_garch@forecast[["sigmaFor"]][, 1],
+      roll_garch@forecast[["density"]][["Sigma"]]
+    )
+    sigma <- Filter(Negate(is.null), possible_sigma)[[1]]
+    as.numeric(sigma)
+  }, error = function(e) stop("Failed to extract sigma: ", e$message))
+
+  sigma_xts <- xts(sigma_forecast, order.by = tail(index(returns_xts), forecast_len))
+
+  if (annualize) {
+    sigma_xts <- sigma_xts * sqrt(252)
+  }
+
+  vol_df <- fortify.zoo(sigma_xts) %>%
+    rename(date = Index, !!new_col_name := 2) %>%
+    mutate(date = as.Date(date))
+
+  data %>%
+    left_join(vol_df, by = setNames("date", date_col))
+}
+
+
+```
+
+```{r, combined_data_garch}
+
+library(RTL)
+library(sandwich) # for NeweyWest
+library(lmtest)
+
+df_combined <- df_fundamental %>%
+  left_join(macro_df_filled, by = "date") %>% as_tibble()
+
+df_combined_with_garch <- add_rolling_garch_vol(
+  data = df_combined,
+  return_col = "daily_log_return",
+  date_col = "date",
+  window_size = 365,
+  refit_every = 20,
+  refit_window = "moving",
+  annualize = FALSE,
+  new_col_name = "garch_vol_daily"
+)
+
+df_final <- df_combined_with_garch %>%
+  arrange(date) %>%
+  mutate(
+    dxy_daily_log_return = (DXY / lag(DXY) - 1)
+  ) %>%
+  select(-DXY)
+
+```
+
+```{r, lm_function}
+library(lmtest)
+library(sandwich)
+library(dplyr)
+library(car)
+
+quick_robust_lm_all_vars <- function(data, target_var, date_col = "date",
+                                     nw_lag = 30, other_exclusions = NULL,
+                                     na_action = na.omit) {
+  stopifnot(is.data.frame(data), target_var %in% names(data))
+
+  all_names <- names(data)
+  exclude_cols <- unique(c(target_var, date_col, other_exclusions))
+  potential_predictors <- setdiff(all_names, exclude_cols)
+
+  numeric_vars <- potential_predictors[sapply(data[, potential_predictors, drop = FALSE], is.numeric)]
+
+  if (length(numeric_vars) == 0) stop("No suitable numeric predictors found.")
+
+  model_formula <- reformulate(numeric_vars, response = target_var)
+
+  model_fit <- tryCatch(
+    lm(model_formula, data = data, na.action = na_action),
+    error = function(e) stop("lm() error: ", e$message)
+  )
+
+  n_obs <- nobs(model_fit)
+  if (n_obs < length(numeric_vars) + 5) warning("Few observations relative to predictors.")
+
+  robust_summary <- tryCatch(
+    coeftest(model_fit, vcov. = NeweyWest(model_fit, lag = nw_lag, prewhite = FALSE)),
+    error = function(e) {
+      warning("Newey-West failed, returning standard errors.")
+      coeftest(model_fit)
+    }
+  )
+
+  vif_values <- tryCatch({
+    car::vif(model_fit)
+  }, error = function(e) {
+    warning("Could not calculate VIFs: ", e$message)
+    NULL
+  })
+
+  list(
+    robust_summary = robust_summary,
+    ols_summary    = summary(model_fit),
+    formula        = model_formula,
+    n_obs          = n_obs,
+    model_fit      = model_fit,
+    vif            = vif_values
+  )
+}
+
+```
+
+#### **Overview**
+
+This report presents a normalized comparative analysis of Bitcoin's price (log scale) against key on-chain valuation metrics. Each metric has been standardized using z-score normalization to highlight periods of statistical significance, helping identify historical market tops, bottoms, and behavioral patterns among investors and miners.
+
+The following chart shows Bitcoin’s price in blue alongside a set of normalized indicators. Each indicator reflects a unique perspective on market valuation, miner dynamics, and network activity:
+
+```{r, technical_plot}
+df_technical1 <- df_technical %>% dplyr::select(-momr)
+
+technical_plot <- create_simple_subplot(data = df_technical1,
+                                   date_col = "date",
+                                   price_col = "PriceUSD_log",
+                                   normalize = TRUE,
+                                   layout_mode = "overlay")
+
+
+technical_plot
+```
+
+*Figure: Bitcoin log price vs normalized valuation metrics*
+
+#### **Indicator Definitions and Interpretations**
+
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+| **Metric**                              | **Definition**                                                         | **Interpretation**                                          | **Use Case**                                                      |
++=========================================+========================================================================+=============================================================+===================================================================+
+| **MCTC**\                               | Compares market cap to cumulative mining cost.                         | High values imply overvaluation relative to miner effort.   | Detects exuberant phases; complements miner-centric metrics.      |
+| *(Market Cap to Thermocap Ratio)*       |                                                                        |                                                             |                                                                   |
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+| **Puell Multiple**                      | Miner daily revenue / 365-day average revenue.                         | Peaks align with market tops; lows with miner capitulation. | Strong cycle timing tool for macro tops and bottoms.              |
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+| **RCTC**\                               | Realized market cap (based on last spent coins) relative to thermocap. | Measures investor-paid value vs issuance cost.              | Useful for identifying overvaluation through speculative inflows. |
+| *(Realized Cap to Thermocap Ratio)*     |                                                                        |                                                             |                                                                   |
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+| **RVTadj90**\                           | Realized value over adjusted on-chain volume (90-day).                 | Indicates efficiency of network value transfer.             | Highlights periods of speculative inefficiency or organic usage.  |
+| *(Realized Value / Transaction Volume)* |                                                                        |                                                             |                                                                   |
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+| **MCMR**\                               | Broad ratio of valuation to actual miner income.                       | Gauges network sustainability vs market hype.               | Serves as a macro sentiment gauge over miner profitability.       |
+| *(Market Cap to Miner Revenue Ratio)*   |                                                                        |                                                             |                                                                   |
++-----------------------------------------+------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------------+
+
+#### **Cross-Metric Observations**
+
+-   **Converging peaks** (e.g., 2013, 2017, 2021) across multiple indicators consistently signal **market cycle tops**.
+
+-   **Synchronized troughs** (e.g., 2015, 2018, mid-2022) suggest **accumulation opportunities** and **undervalued network states**.
+
+-   **Divergences** between price and indicator values highlight **bull traps** or early signs of macro transitions.
+
+## Modelling BTC
+
+```{r, data_analysis}
+
+df_training <- df_final %>%
+  filter(date < "2020-01-01") %>% drop_na() %>%
+  select(-daily_log_return)
+
+df_live <- df_final %>%
+  filter(date >= "2020-01-01") %>%
+  select(-daily_log_return)
+
+df_training <- df_training %>%
+  dplyr::select(date, RevUSD, SplyAct1d,forward_30d_log_return)
+
+# df_training <- df_training %>%
+#   dplyr::select(-SplyFF, -FlowInExUSD, -FlowOutExUSD, -AdrActCnt, -Unemp_Rate, -Real_Yield_10Y, -SplyAdrBalNtv1K, -CPI_YoY, -HashRate, -TxCnt, -M2_YoY)
+
+results <- quick_robust_lm_all_vars(
+  data = df_training,
+  target_var = "forward_30d_log_return",
+  nw_lag = 30
+)
+
+results
+```
+
+```{r, autocorrelation_analysis}
+
+bg_test_result <- bgtest(results$model_fit, order = 30)
+bg_test_result
+
+dw_test_result <- dwtest(results$model_fit)
+dw_test_result
+
+crPlots(results$model_fit, layout = NULL, ask = FALSE)
+```
+
+**Initial Model Setup:** A linear regression model (OLS) was fitted to predict Bitcoin's forward 30-day log return using a combination of on-chain metrics (MVRV, Miner Revenue, 1-Day Active Supply), market indicators (VIX, GARCH Volatility, DXY Returns), and macroeconomic variables (Yield Curve Spread). The model utilized 2922 daily observations.
+
+**Residual Autocorrelation Diagnostics:**
+
+-   **Durbin-Watson Test:** The test yielded a statistic DW = 0.0774, which is extremely close to 0 and far below the benchmark of 2. The associated p-value (\< 2.2e-16) strongly rejects the null hypothesis of no autocorrelation in favor of the alternative hypothesis of positive first-order autocorrelation.
+
+-   **Breusch-Godfrey Test:** Testing for serial correlation up to order 30 resulted in a highly significant test statistic (LM = 2713.2, p-value \< 2.2e-16). This strongly rejects the null hypothesis of no serial correlation up to lag 30.
+
+**Conclusion from Diagnostics:** Both tests definitively confirm the presence of **strong positive serial autocorrelation** in the model's residuals, primarily due to the overlapping nature of the 30-day forward return target variable. This necessitates the use of autocorrelation-robust standard errors for valid statistical inference.
+
+**Statistically Significant Predictors (Using Robust Newey-West Inference, lag=30):** Based on the coeftest results accounting for the identified autocorrelation:
+
+-   **RevUSD (Miner Revenue USD):** Highly significant (\*\*\*, p = 0.00026). The negative coefficient (-1.27e-08) suggests that higher daily miner revenue is associated with lower subsequent 30-day forward returns, holding other factors constant.
+
+-   **SplyAct1d (Supply Active in Past 1 Day):** Significant (\*\*, p = 0.0057). The positive coefficient (3.97e-07) indicates that higher short-term network velocity is associated with higher subsequent 30-day forward returns.
+
+    -   **Non-Significant Predictors (Robust Inference, p \> 0.10):**
+
+        -   CapMVRVFF (p ≈ 0.176)
+
+        -   VIX (p ≈ 0.116 - Marginal)
+
+        -   Yield_Curve_10Y2Y (p ≈ 0.203)
+
+        -   garch_vol_daily (p ≈ 0.173)
+
+        -   dxy_daily_log_return (p ≈ 0.754)
+
+        -   (Intercept) (p ≈ 0.403)
+
+        -   These variables did not show statistically significant linear predictive power for the 30-day forward return at conventional levels within this multivariate model, after correcting for autocorrelation.
+
+**Overall Model Fit & Multicollinearity:**
+
+-   The model explains approximately **14.9%** of the variance in forward 30-day log returns (Adjusted R-squared = 0.1489 from the standard OLS summary).
+
+-   Variance Inflation Factors (VIFs) were all low (well below 5), indicating that multicollinearity was not a significant issue confounding the coefficient estimates.
+
+**Reduced (simple) Model setup:** Based on our findings of our initial model, we decided to fit a simplified linear regression model to predict Bitcoin's forward 30-day log return, using Miner Revenue (RevUSD) and 1-day Active Supply (SplyAct1d). The model used the same amount of daily observations and had the same tests completed.
+
+**Findings:** While simplified, this model explains approximately 11.6% of the variance in forward 30-day log returns. This is slightly lower than the \~15% explained by the full model, as well as extremely low VIF's (\~1.01), confirming there is virtually no multicollinearity between these two predictors.
+
+**In Conclusion:** This more simplified model, while explaining slightly less variance than the full model, provides a clear picture that block-chain analytics, macro-economic factors, and the dollar index does not influence bitcoins future values. Only \~11.6% of the variance in pricing dynamics can be explained by miner activity, as well as active daily circulating supply.
+
+**Model:**
+
+```{r}
+library(ggfortify)
+
+autoplot(results$model_fit)
+```
+
+Based on our model, we wouldn't use this linear regression model for trading because its diagnostic plots reveal significant violations of key assumptions, including nonlinearity, heteroscedasticity, and non-normal residuals. The residuals show patterns that suggest the model fails to capture important nonlinear relationships, particularly at extreme values, which are often the most critical for trading signals. Additionally, the presence of outliers and influential data points could lead to unstable or misleading predictions. Since trading strategies require models that are not only predictive but also robust under varying market conditions, this model’s weaknesses would likely result in poor generalization and unreliable signals in live environments. A more flexible model—such as a GAM or a machine learning approach—would be better suited to capture the complex, nonlinear dynamics of Bitcoin's environment.

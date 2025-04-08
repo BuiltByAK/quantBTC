@@ -4,8 +4,6 @@ format: html
 editor: visual
 ---
 
-
-
 ```{r}
 add_text <- function(plt, x, y, text, size, color){
   
@@ -65,7 +63,6 @@ candle
 
 ```
 
-
 ```{r}
 
 bit %>% 
@@ -88,7 +85,6 @@ rets %>%
          xaxis = list(title = ""),
          yaxis = list(title = "Log Returns", tickformat = '.1%'))
 ```
-
 
 ```{r stl}
 library(zoo)
@@ -128,8 +124,6 @@ garchdat <- rets %>% dplyr::select(date, closeclose)
 garchdat <- RTL::garch(garchdat)
 
 ```
-
-
 
 ```{r, Single Coin Relationship plot Function}
 
@@ -326,7 +320,6 @@ plot.ZeroInterceptBeta('XRP-USD', '2010-01-01', 30, 'chart')
 
 ```
 
- 
 ```{r, Understanding Fees}
 # install.packages('crypto2')
 
@@ -353,18 +346,8 @@ crypto2::fiat_list()
 
 
 ```
-Makers:
-Place limit orders that are not immediately filled, adding liquidity to the order book. 
-Their orders can be matched by other traders later, providing a price that other traders can take. 
-Maker fees are generally lower because they contribute to market stability. 
-Takers:
-Place market orders that are immediately filled, removing liquidity from the order book. 
-Taker fees are typically higher because they take advantage of the liquidity provided by makers. 
-How it works:
-When you place an order that is partially filled immediately, you pay a taker fee for the portion that is immediately filled. 
-The remaining portion of the order, if any, is placed on the order book and is subject to a maker fee when filled. 
 
-
+Makers: Place limit orders that are not immediately filled, adding liquidity to the order book. Their orders can be matched by other traders later, providing a price that other traders can take. Maker fees are generally lower because they contribute to market stability. Takers: Place market orders that are immediately filled, removing liquidity from the order book. Taker fees are typically higher because they take advantage of the liquidity provided by makers. How it works: When you place an order that is partially filled immediately, you pay a taker fee for the portion that is immediately filled. The remaining portion of the order, if any, is placed on the order book and is subject to a maker fee when filled.
 
 ```{r, learning API}
 
@@ -466,7 +449,6 @@ for(col in names(monthlydat)){
 (xycharts$btc_dominance | xycharts$score) / (xycharts$USD_total_market_cap | xycharts$USD_altcoin_market_cap)
 ```
 
-
 ```{r}
 library(httr)
 
@@ -497,9 +479,6 @@ dat %>%
   ggplot(aes(x = fng_change, y = closeclose)) + geom_point()
 ```
 
-
-
-
 ```{r}
 
 ### Scrape the crypto currency historic market tables from ’CoinMarketCap’ https://coinmarketcap. com and display the results in a dataframe/tibble. This can be used to conduct analysis on the crypto f inancial markets or to attempt to predict future market movements or trends. ###
@@ -516,4 +495,3 @@ crypto2::crypto_history(
   sleep = 1             
 )
 ```
-

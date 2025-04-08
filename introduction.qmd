@@ -1,0 +1,2381 @@
+---
+title: "Overview of Bitcoin"
+format: html
+editor: visual
+---
+
+### **Understanding the Crypto Landscape: From Bitcoin to the Blockchain Economy**
+
+#### **Introduction: A new Financial & Digital Frontier**
+
+Imagine a world where money isn't solely controlled by governments and banks, where digital ownership is verifiable without intermediaries, and where financial services operate transparently on open networks. This is the evolving reality powered by cryptocurrencies and blockchain technology. What started as a niche experiment has exploded into a \$2.49T global asset class, driving innovation and disruption across finance, technology, and culture. Understanding this dynamic market is crucial, not just for investment, but for understanding the potential shifts in our digital future.
+
+**Part 1: The Genesis - Bitcoin (The Digital Scarcity Revolution)**
+
+-   **The Spark (Why)**: born from the fallout of the 2008 financial crises and fueled by cypherpunk ideals of privacy and decentralization, Bitcoin emerged in 2009. Created by anonymous Satoshi Nakamoto, it offered a radical solution: a peer-to-peer electronic cash system operating without trusted third parties.
+
+-   **The Breakthrough (What):** Bitcoin introduced blockchain technology - a distributed, unalterable public ledger - solving the "double-spend" problem for digital assets. its core value proposition was verifiable digital scarcity (capped at 21 million coins) and censorship resistance.
+
+-   **Bitcoin's Role Today:** While its use as daily "cash" is debatable, Bitcoin has solidified its narrative as "digital gold" - a decentralized, globally accessible, potentially inflation-resistant store of value. It remains the largest and most established cryptocurrency, acting as the foundation and primary entry point for many into the ecosystem. its analysis often focuses on adoption, holder behavior, security (hash rate), and its relationship with macro trends.
+
+**Part 2:** **The expansion - Ethereum (The World Computer & Programmable Money)**
+
+-   **The Next Leap (Why):** Bitcoin proved decentralized digital value transfer was possible, but its scripting language was limited. Vitalik Buterin and others envisioned more: a blockchain that could run any program.
+
+-   **The Innovation (What):** Launched in 2015, Ethereum introduced "smart contracts" - self-executing contracts with the terms of the agreement directly written into code. This transformed the blockchain from just a ledger into a programmable platform, a "world computer".
+
+-   **Ethereum's Role Today:** It became the foundation for;
+
+    -   **Decentralized Finance (DeFi):** Recreating traditional financial services (lending, borrowing, exchanges) without intermediaries.
+
+    -   **Non-Fungible Tokens (NFTs):** Enabling verifiable ownership of unique digital items (art, collectibles, virtual land).
+
+    -   **Decentralized Autonomous Organizations (DAOs):** New forms of internet-native organizations.
+
+    -   its native asset, Ether (ETH), acts as "gas" (transaction fees) and a primary economic asset within its vast ecosystem. Analysis often involves gas fees, network congestion, smart contract activity, staking (since its move to Proof-of-Stake), and the growth of DeFI/NFTs. Ethereum faces challenges with scale-ability and transaction costs, leading to the rise of competitors and scaling solutions.
+
+**Part 3: The Acceleration - Solona and the Quest for Scale (The performance Layer)**
+
+-   **The Bottleneck (Why):** Ethereum's success led to high demand, resulting in network congestion and expensive transaction fees ("gas wars"), making certain applications impractical. This created demand for faster, cheaper block-chains.
+
+-   **The Contenders (What):** Solana emerged as a prominent example of a newer generation Layer-1 blockchain focused on high throughput (transactions per second) and low cost. It uses different consensus mechanisms (like Proof-of-History combined with Proof-of-Stake) to achieve performance, aiming to support applications needing high speed, like decentralized exchanges, gaming, and high-frequency NFT minting.
+
+-   **Solana's Role Today (and similar L1s):** These platforms act as performance layers, competing to host the next wave of high-usage decentralized applications. They represent a different set of design trade-offs, often prioritizing speed and cost over the level of decentralization seen in Bitcoin or (historically) Ethereum.
+
+**Part 4: The Transformation & Why We Analyze (edit, why do you want crypto rather than analyze)**
+
+-   **Evolution:** The crypto market has journeyed from Bitcoin's conceptual breakthrough to Ethereum's programmable economy, and now to a multi-chain landscape, focused on scaling and diverse applications. We've seen explosive growth cycles (ICOs, DeFi Summer, NFT boom), painful downturns ("Crypto Winters"), increasing regulatory scrutiny, and growing institutional adoption.
+
+-   **Why Analyze?**
+
+    1.  **Significant Economic Force:** it's a major asset class attracting substantial investment and talent.
+    2.  **Technological Innovation:** Blockchains, DeFi, NFTs, and DAOs represent potentially disruptive technological and social shifts.
+    3.  **Market Dynamics:** The volatility and unique characteristics create opportunities and risks that demand careful study.
+    4.  **Unprecedented Data Transparency:** *This is key for our purpose.* Unlike traditional markets with opaque information flows and quarterly reporting, blockchains offer a public, real-time ledger of network activity, and holdings. This "on-chain data" provides a unique, rich dataset to analyze network health, user behavior, economic flows, and market sentiment directly.
+
+**Conclusion/Transition:**
+
+This dynamic, rapidly evolving ecosystem presents both opportunity and complexity. By leveraging the transparent nature of block-chain data, we can move beyond simple price speculation and gain deeper insights into the fundamental drivers, adoption trends, and behavioral patterns shaping the Crypto market. Our goal is to explore this rich data landscape to better understand the value propositions and market movements within this new emerging market, while providing exposure to this volatile asset class in hopes to maximize returns with minimal draw-down.
+
+### **Analyzing Bitcoin's Fundamentals through On-Chain Data**
+
+**Defining "Fundamentals" for a Digital Asset:**
+
+Unlike traditional equities which derive fundamental value from cash flows, earnings, and balance sheets, Bitcoin represents a new type of asset. Its "fundamentals" are not tied to a corporation but rather to health, security, adoption, and economic activity of its underlying network protocol. The interesting aspect of Bitcoin and subsequent blockchains is that much of this activity is recorded permanently and publicly on the ledger. This "on-chain data" provides an unprecedented, real-time window into network dynamics, offering a basis for "fundamental" analysis unique to this asset class.
+
+Key categories of on-chain metrics we examined from the CoinMetrics library include:
+
+1.  **Network Activity & Adoption:** How many participants are using the network? How often? Represented by Active Addresses (AdrActCnt) and Transaction Count (TxCnt).
+2.  **Economic Throughput:** How much value is being transferred? Represented by Adjusted Transfer Value in USD (TxTfrValAdjUSD) and Velocity (SplyAct1d).
+3.  **Network Security:** How much computational power is securing the network? How difficult is it to mine? (e.g., Hash Rate (HashRate) and Difficulty (DiffMean)).
+4.  **Miner Economics:** How are miners being compensated? Are they profitable? (e.g., Miner Revenue (RevUSD), Issuance Rate).
+5.  **Holder Behavior & Supply Dynamics:** How is supply distributed? Are holders accumulating or selling? What is the "cost basis" of the network? (e.g., MVRV (CapMVRVFF), Exchange Flows (FlowInExUSD, FlowOutExUSD), Supply Held by Cohorts or "whales" (SplyAdrBalNtv1K)).
+
+**Gauging the Macroeconomic Tide - External influences on Bitcoin**
+
+While Bitcoin operates on a self-contained network with its unique on-chain fundamentals, its value as perceived by the market and its price action theoretically should be linked to the broader global macroeconomic environment. Just as traditional assets react to shifts in inflation, interest rates, and economic growth, so should Bitcoin, at-least in some complex or evolving ways. Understanding these external forces in relation to Bitcoin's behavior can help assess it's role within a larger investment portfolio.
+
+We examine several key macroeconomic indicators, making assumptions about their potential influence based on established financial theory and emerging narratives specific to digital assets
+
+1.  Inflation & Store of Value Narrative (CPI_YoY):
+    -   **Metric:** Year-over-year percentage change in the consumer price index
+
+    -   **Assumed Dynamics:** periods of high or rising CPI are theoretically expected to increase demand for Bitcoin as investors seek assets that may preserve purchasing power (the "digital gold" or "inflation hedge" narrative).
+2.  Opportunity Cost & Discount Rates (Real_Yield_10Y)
+    -   **Metric:** Yield on 10-Year Treasury Inflation-Protected Securities (TIPS), representing the real (inflation-adjusted) return on a benchmark "risk-free" asset.
+
+    -   
+
+**Investigating the Predictive Power for Returns:**
+
+A core question for investors and analysts is whether these fundamental on-chain metrics can reliably explain or predict Bitcoin's price movement, for our analysis we attempted to understand "forward 30-day returns", defined as $\large{\frac{P_{t+30}-P_{t}}{P_{t}}}$ or $\large{ln(\frac{P_{t+30}}{P_{t}})}$ . Theoretically, a healthier, more adopted network should be supported by a higher valuation over time. To test this, we employed a quantitative approach.
+
+We constructed linear regression models attempting to predict Bitcoin's forward 30-day log returns using a comprehensive set of the on-chain, market
+
+**Simplified:**
+
+```{r, simple_crypto_ratio}
+# simple_crypto_ratio <- function(ticker1, ticker2) {
+#   # Load required packages (ideally, do this once outside your function)
+#   library(quantmod)
+#   library(dplyr)
+#   
+#   # Fetch data for a ticker with error handling
+#   fetch_data <- function(ticker) {
+#     tryCatch(
+#       getSymbols(ticker, src = "yahoo", auto.assign = FALSE),
+#       error = function(e) {
+#         cat("Error fetching", ticker, ":", e$message, "\n")
+#         return(NULL)
+#       }
+#     )
+#   }
+#   
+#   # Get data for both tickers
+#   data1 <- fetch_data(ticker1)
+#   data2 <- fetch_data(ticker2)
+#   
+#   # Check if data was successfully retrieved
+#   if (is.null(data1) || is.null(data2)) {
+#     cat("Data retrieval failed for one or both tickers.\n")
+#     return(NULL)
+#   }
+#   
+#   # Extract the Adjusted Close prices
+#   price1 <- Ad(data1)
+#   price2 <- Ad(data2)
+#   
+#   # Merge the two price series on common dates
+#   merged_data <- merge(price1, price2)
+#   if (nrow(merged_data) == 0) {
+#     cat("No common dates found for", ticker1, "and", ticker2, "\n")
+#     return(NULL)
+#   }
+#   
+#   # Rename the columns to simple names for clarity
+#   colnames(merged_data) <- c("Price1", "Price2")
+#   
+#   # Convert xts object to a data frame with a date column
+#   df <- data.frame(Date = index(merged_data), coredata(merged_data))
+#   
+#   # Calculate the ratio (Price2 divided by Price1)
+#   df <- df %>% mutate(Ratio = Price2 / Price1)
+#   
+#   # Remove any rows with NA values
+#   df <- na.omit(df)
+#   
+#   # Return the final data frame
+#   return(df)
+# }
+# 
+# # Example usage:
+# result <- simple_crypto_ratio("BTC-USD", "LINK-USD")
+# print(result)
+
+```
+
+```{r, ratio_function, warning= FALSE}
+# #############################################
+# # 1. Data Retrieval & Ratio Calculation
+# #############################################
+# 
+# get_simple_crypto_ratio <- function(ticker1, ticker2) {
+#   # Load required libraries
+#   library(quantmod)
+#   library(dplyr)
+#   
+#   # A simple helper to fetch data with minimal error handling
+#   fetch_data <- function(ticker) {
+#     tryCatch(getSymbols(ticker, src = "yahoo", auto.assign = FALSE),
+#              error = function(e) NULL)
+#   }
+#   
+#   # Fetch data for each ticker
+#   data1 <- fetch_data(ticker1)
+#   data2 <- fetch_data(ticker2)
+#   if (is.null(data1) || is.null(data2))
+#     stop("Failed to fetch data for one or both tickers.")
+#   
+#   # Extract base ticker names (e.g., from "BTC-USD" -> "btc")
+#   base1 <- tolower(strsplit(ticker1, "-")[[1]][1])
+#   base2 <- tolower(strsplit(ticker2, "-")[[1]][1])
+#   
+#   # Merge the Adjusted Close prices from both time series
+#   prices <- merge(Ad(data1), Ad(data2))
+#   if (nrow(prices) == 0)
+#     stop("No common trading dates found between tickers.")
+#   
+#   df <- data.frame(date = index(prices), coredata(prices)) %>%
+#     rename(!!base1 := !!as.symbol(names(prices)[1]),
+#            !!base2 := !!as.symbol(names(prices)[2])) %>%
+#     # Create a ratio column named "ticker2_ticker1_ratio" (e.g. "link_btc_ratio")
+#     mutate(!!paste0(base2, "_", base1, "_ratio") := !!as.symbol(base2) / !!as.symbol(base1)) %>%
+#     na.omit()
+#   
+#   if (nrow(df) == 0)
+#     stop("No valid ratio calculations possible.")
+#   
+#   return(df)
+# }
+# 
+# # Example usage:
+# an_data <- get_simple_crypto_ratio("BTC-USD", "LINK-USD")
+
+```
+
+```{r, regime analysis}
+# #############################################
+# # 2. Regime Analysis & Plotting via GMM
+# #############################################
+# 
+# gini_lamp_analyze_crypto_ratio <- function(data, upper_threshold = 1, lower_threshold = -0.8) {
+#   library(dplyr)
+#   library(mixtools)
+#   library(ggplot2)
+#   library(patchwork)
+#   
+#   # Basic validation: data must have a 'date' column
+#   if (!"date" %in% names(data))
+#     stop("Input data must contain a 'date' column.")
+#   
+#   # Identify the ratio column (assume it ends with '_ratio')
+#   ratio_col_name <- names(data)[grepl("_ratio$", names(data))]
+#   if (length(ratio_col_name) != 1)
+#     stop("Unable to uniquely identify the ratio column.")
+#   
+#   # Extract ticker names from the ratio column (expected format: ticker2_ticker1_ratio)
+#   parts <- strsplit(ratio_col_name, "_")[[1]]
+#   if (length(parts) < 3)
+#     stop("Ratio column not in the expected format 'ticker2_ticker1_ratio'.")
+#   
+#   ticker2_raw <- parts[1]
+#   ticker1_raw <- parts[length(parts) - 1]
+#   pair_name <- paste0(toupper(ticker2_raw), "/", toupper(ticker1_raw))
+#   
+#   # Clean data and calculate the log ratio
+#   clean_data <- data %>%
+#     filter(!is.na(!!as.symbol(ratio_col_name)) & !!as.symbol(ratio_col_name) != 0) %>%
+#     mutate(log_ratio = log(!!as.symbol(ratio_col_name)))
+#   
+#   if (nrow(clean_data) < 20)
+#     stop("Insufficient valid data points (<20) for model fitting.")
+#   
+#   # Fit a Gaussian Mixture Model (GMM) to the log_ratio
+#   mix_model <- normalmixEM(clean_data$log_ratio, k = 2, maxit = 1000, epsilon = 1e-06)
+#   
+#   # Classify regimes and calculate Z-scores
+#   clean_data$regime <- ifelse(mix_model$posterior[, 1] > 0.5, 1, 2)
+#   regime_params <- data.frame(regime = c(1, 2), mu = mix_model$mu, sigma = mix_model$sigma)
+#   clean_data <- clean_data %>%
+#     left_join(regime_params, by = "regime") %>%
+#     mutate(z_score = (log_ratio - mu) / sigma,
+#            signal = case_when(
+#              z_score > upper_threshold ~ paste("Short", pair_name),
+#              z_score < lower_threshold ~ paste("Long", pair_name),
+#              TRUE ~ "Hold"
+#            ))
+#   
+#   # Plot: Ratio time series with regime coloring and signals for non-"Hold" points
+#   plot_ratio <- ggplot(clean_data, aes(x = date, y = !!as.symbol(ratio_col_name))) +
+#     geom_line(aes(color = as.factor(regime))) +
+#     geom_point(data = filter(clean_data, signal != "Hold"),
+#                aes(shape = signal, color = as.factor(regime)), size = 2.5) +
+#     labs(title = paste(pair_name, "Ratio with Regimes"),
+#          y = paste(pair_name, "Ratio Value")) +
+#     theme_minimal()
+#   
+#   # Plot: Z-score evolution with threshold lines
+#   plot_zscore <- ggplot(clean_data, aes(x = date, y = z_score)) +
+#     geom_line(color = "steelblue") +
+#     geom_hline(yintercept = c(lower_threshold, upper_threshold), linetype = "dashed") +
+#     labs(title = paste("Z-Score for", pair_name), y = "Z-Score") +
+#     theme_minimal()
+#   
+#   # Additional illustrative plots
+#   simple_ratio_plot <- ggplot(clean_data, aes(x = date, y = !!as.symbol(ratio_col_name))) +
+#     geom_line(color = "blue") +
+#     labs(title = paste(pair_name, "Simple Ratio Time Series"), y = "Ratio") +
+#     theme_minimal()
+#   
+#   histogram_plot <- ggplot(clean_data, aes(x = !!as.symbol(ratio_col_name))) +
+#     geom_histogram(aes(y = ..density..), bins = 50, fill = "lightblue") +
+#     geom_density(color = "red") +
+#     labs(title = paste("Ratio Distribution for", pair_name), x = "Ratio", y = "Density") +
+#     theme_minimal()
+#   
+#   qq_plot <- ggplot(clean_data, aes(sample = log_ratio)) +
+#     stat_qq(distribution = stats::qnorm) +
+#     stat_qq_line(distribution = stats::qnorm, color = "red") +
+#     labs(title = paste("QQ Plot of log(Ratio) for", pair_name)) +
+#     theme_minimal()
+#   
+#   return(list(
+#     data_with_signals = clean_data,
+#     regime_params = regime_params,
+#     plots = list(plot_ratio = plot_ratio,
+#                  plot_zscore = plot_zscore,
+#                  simple_ratio_plot = simple_ratio_plot,
+#                  histogram_plot = histogram_plot,
+#                  qq_plot = qq_plot),
+#     gmm_model = mix_model
+#   ))
+# }
+# 
+# # Example usage:
+# analysis_results <- gini_lamp_analyze_crypto_ratio(an_data)
+
+
+```
+
+```{r, strategy_simplified}
+# aladdin_crypto_pair_strategy_macd <- function(analysis_results,
+#                                               macd_fast = 12, macd_slow = 26, macd_sig = 9,
+#                                               initial_capital = 10000, txn_fee = 0.001,
+#                                               stop_loss_pct = 0.01) {
+#   library(dplyr)
+#   library(ggplot2)
+#   library(TTR)
+#   library(tidyr)
+#   library(patchwork)
+#   
+#   # Check that analysis_results contains the expected data
+#   if (!is.list(analysis_results) || !"data_with_signals" %in% names(analysis_results))
+#     stop("analysis_results must be a list containing data_with_signals")
+#   
+#   data <- analysis_results$data_with_signals
+#   
+#   # --- Identify the ratio column ---
+#   ratio_candidates <- names(data)[grepl("_ratio$", names(data))]
+#   ratio_col <- setdiff(ratio_candidates, "log_ratio")
+#   if (length(ratio_col) != 1)
+#     stop("Unique ratio column not found in the data.")
+#   
+#   # Infer ticker names (expected format: ticker2_ticker1_ratio)
+#   parts <- strsplit(ratio_col, "_")[[1]]
+#   if (length(parts) < 3)
+#     stop("Ratio column format incorrect; expecting 'ticker2_ticker1_ratio'.")
+#   ticker2_raw <- parts[1]
+#   ticker1_raw <- parts[length(parts) - 1]
+#   ticker1 <- toupper(ticker1_raw)
+#   ticker2 <- toupper(ticker2_raw)
+#   pair_name <- paste0(ticker2, "/", ticker1)
+#   
+#   # Ensure required columns exist in data
+#   required_cols <- c("date", ticker1_raw, ticker2_raw, ratio_col, "signal", "z_score")
+#   if (!all(required_cols %in% names(data)))
+#     stop("Data missing one or more required columns: ", paste(required_cols, collapse=", "))
+#   
+#   # --- Calculate MACD on the ratio ---
+#   data <- data %>% arrange(date)
+#   macd_vals <- MACD(data[[ratio_col]], nFast = macd_fast, nSlow = macd_slow,
+#                     nSig = macd_sig, maType = "EMA")
+#   macd_df <- as.data.frame(macd_vals)
+#   names(macd_df) <- c("macd", "macd_signal")
+#   data <- bind_cols(data, macd_df)
+#   
+#   # Create a numeric indicator from the original analysis signal column.
+#   data <- data %>% mutate(z_signal = case_when(
+#     grepl("Long", signal, ignore.case = TRUE) ~ 1,
+#     grepl("Short", signal, ignore.case = TRUE) ~ -1,
+#     TRUE ~ 0
+#   ))
+#   
+#   # --- Initialize backtest state ---
+#   cash_usd <- initial_capital
+#   qty_ticker1 <- 0
+#   qty_ticker2 <- 0
+#   position_type <- 0      # 0: Flat, 1: Long Ratio, -1: Short Ratio
+#   entry_equity <- NA
+#   entry_date <- NA
+#   entry_price_t1 <- NA
+#   entry_price_t2 <- NA
+#   
+#   equity_curve <- data.frame(date = data$date, cash = NA, qty1 = NA, qty2 = NA, equity = NA)
+#   n <- nrow(data)
+#   trades_log <- list()
+#   
+#   start_index <- max(2, which(!is.na(data$macd))[1])
+#   equity_curve$cash[1:(start_index-1)] <- initial_capital
+#   equity_curve$qty1[1:(start_index-1)] <- 0
+#   equity_curve$qty2[1:(start_index-1)] <- 0
+#   equity_curve$equity[1:(start_index-1)] <- initial_capital
+#   
+#   # --- Simulation Loop ---
+#   for (i in start_index:n) {
+#     current_date <- data$date[i]
+#     price1 <- data[[ticker1_raw]][i]
+#     price2 <- data[[ticker2_raw]][i]
+#     
+#     # Check that all four MACD-related values are available
+#     current_macd_cross <- if (i > 1 &&
+#                               !is.na(data$macd[i]) && !is.na(data$macd[i-1]) &&
+#                               !is.na(data$macd_signal[i]) && !is.na(data$macd_signal[i-1])) {
+#       if (data$macd[i] > data$macd_signal[i] && data$macd[i-1] <= data$macd_signal[i-1]) 1
+#       else if (data$macd[i] < data$macd_signal[i] && data$macd[i-1] >= data$macd_signal[i-1]) -1
+#       else 0
+#     } else {  
+#       0 
+#     }
+#     
+#     current_equity <- cash_usd + qty_ticker1 * price1 + qty_ticker2 * price2
+#     equity_curve$equity[i] <- current_equity
+#     
+#     # --- Stop-Loss Check ---
+#     if (position_type != 0 && !is.na(entry_equity)) {
+#       if ((current_equity / entry_equity - 1) < -stop_loss_pct) {
+#         cash_from_t1 <- qty_ticker1 * price1 * (1 - txn_fee)
+#         cash_from_t2 <- qty_ticker2 * price2 * (1 - txn_fee)
+#         cash_usd <- cash_usd + cash_from_t1 + cash_from_t2
+#         trades_log[[length(trades_log) + 1]] <- data.frame(
+#           EntryDate = entry_date, ExitDate = current_date,
+#           Position = ifelse(position_type == 1, "Long Ratio", "Short Ratio"),
+#           EntryPriceT1 = entry_price_t1, EntryPriceT2 = entry_price_t2,
+#           ExitPriceT1 = price1, ExitPriceT2 = price2,
+#           EquityChange = current_equity - entry_equity
+#         )
+#         qty_ticker1 <- 0; qty_ticker2 <- 0; position_type <- 0
+#         entry_equity <- NA; entry_date <- NA
+#       }
+#     }
+#     
+#     # --- Trading Logic ---
+#     if (position_type == 0) {
+#       if (data$z_signal[i] == 1 || current_macd_cross == 1) {
+#         entry_equity <- current_equity
+#         capital_alloc <- entry_equity / 2
+#         cash_usd <- cash_usd - 2 * capital_alloc * txn_fee
+#         qty_ticker2 <- capital_alloc / price2
+#         qty_ticker1 <- -capital_alloc / price1
+#         position_type <- 1
+#         entry_date <- current_date
+#         entry_price_t1 <- price1
+#         entry_price_t2 <- price2
+#       } else if (data$z_signal[i] == -1 || current_macd_cross == -1) {
+#         entry_equity <- current_equity
+#         capital_alloc <- entry_equity / 2
+#         cash_usd <- cash_usd - 2 * capital_alloc * txn_fee
+#         qty_ticker1 <- capital_alloc / price1
+#         qty_ticker2 <- -capital_alloc / price2
+#         position_type <- -1
+#         entry_date <- current_date
+#         entry_price_t1 <- price1
+#         entry_price_t2 <- price2
+#       }
+#     } else {
+#       if ((position_type == 1 && data$z_signal[i] != 1) ||
+#           (position_type == -1 && data$z_signal[i] != -1)) {
+#         cash_from_t1 <- qty_ticker1 * price1 * (1 - txn_fee)
+#         cash_from_t2 <- qty_ticker2 * price2 * (1 - txn_fee)
+#         cash_usd <- cash_usd + cash_from_t1 + cash_from_t2
+#         trades_log[[length(trades_log) + 1]] <- data.frame(
+#           EntryDate = entry_date, ExitDate = current_date,
+#           Position = ifelse(position_type == 1, "Long Ratio", "Short Ratio"),
+#           EntryPriceT1 = entry_price_t1, EntryPriceT2 = entry_price_t2,
+#           ExitPriceT1 = price1, ExitPriceT2 = price2,
+#           EquityChange = current_equity - entry_equity
+#         )
+#         qty_ticker1 <- 0; qty_ticker2 <- 0; position_type <- 0
+#         entry_equity <- NA; entry_date <- NA
+#       }
+#     }
+#     
+#     equity_curve$cash[i] <- cash_usd
+#     equity_curve$qty1[i] <- qty_ticker1
+#     equity_curve$qty2[i] <- qty_ticker2
+#   }
+#   
+#   trades_df <- if (length(trades_log) > 0) do.call(rbind, trades_log) else data.frame()
+#   
+#   equity_plot <- ggplot(equity_curve, aes(x = date, y = equity)) +
+#     geom_line(color = "blue", size = 1) +
+#     labs(title = paste("Equity Curve for", pair_name),
+#          y = "Portfolio Equity (USD)") +
+#     theme_minimal()
+#   
+#   return(list(
+#     trades = trades_df,
+#     equity_curve = equity_curve,
+#     equity_plot = equity_plot
+#   ))
+# }
+# 
+# # Example usage:
+# backtest_results <- aladdin_crypto_pair_strategy_macd(analysis_results)
+# 
+# backtest_results
+```
+
+### **Data collection and analysis**
+
+```{r, data_ratio}
+# --- Libraries Needed for All Phases ---
+load_required_packages <- function() {
+  suppressPackageStartupMessages({
+    library(quantmod)
+    library(xts)
+    library(dplyr)
+    library(rlang)
+    library(ggplot2)
+    library(mixtools) # For Gini
+    library(patchwork) # For Gini/Aladdin plots
+    library(stats)    # For Gini QQ plot
+    library(zoo)      # For Gini/Aladdin
+    library(TTR)      # For Aladdin MACD
+    library(scales)   # For Aladdin plot labels
+    library(tidyr)    # For Aladdin detailed plot data reshaping
+  })
+  invisible(TRUE) # Return TRUE invisibly
+}
+
+# --- Helper Functions for Data Retrieval ---
+
+#' Fetch and Prepare Single Ticker Data
+#' @param ticker Ticker symbol (e.g., "BTC-USD")
+#' @return An xts object with Adjusted close prices or NULL on error.
+fetch_single_ticker_xts <- function(ticker) {
+  data <- tryCatch(
+    getSymbols(ticker, src = "yahoo", auto.assign = FALSE, warnings = FALSE, verbose = FALSE),
+    error = function(e) {
+      message("Error fetching ", ticker, ": ", e$message)
+      return(NULL)
+    }
+  )
+  if (is.null(data)) return(NULL)
+  return(Ad(data)) # Return only Adjusted column as xts
+}
+
+#' Merge Price Series and Calculate Ratio
+#' @param prices1_xts xts object for the first ticker (denominator).
+#' @param prices2_xts xts object for the second ticker (numerator).
+#' @param name1 Base name for ticker 1 (e.g., "btc").
+#' @param name2 Base name for ticker 2 (e.g., "link").
+#' @return A data frame with date, prices, and ratio, or NULL on failure.
+calculate_merged_ratio_df <- function(prices1_xts, prices2_xts, name1, name2) {
+  if (is.null(prices1_xts) || is.null(prices2_xts)) {
+    message("Failed to fetch data for one or both tickers.")
+    return(invisible(NULL))
+  }
+
+  prices <- merge(prices1_xts, prices2_xts, join = "inner")
+  if (nrow(prices) == 0) {
+    message("No common trading dates found between the tickers.")
+    return(invisible(NULL))
+  }
+
+  # Use the provided base names directly
+  colnames(prices) <- c(name1, name2)
+
+  df <- data.frame(date = time(prices), coredata(prices))
+  ratio_name <- paste0(name2, "_", name1, "_ratio")
+
+  df <- df %>%
+    mutate(
+      !!ratio_name := ifelse(!is.na(!!sym(name1)) & !!sym(name1) != 0,
+                             !!sym(name2) / !!sym(name1), NA_real_)
+    ) %>%
+    select(date, !!sym(name1), !!sym(name2), !!sym(ratio_name)) %>%
+    na.omit()
+
+  if (nrow(df) == 0) {
+    message("No valid ratio calculations possible after filtering.")
+    return(invisible(NULL))
+  }
+  return(df)
+}
+
+#' Get Simple Crypto Ratio (Refactored Orchestrator)
+#' Orchestrates fetching data and calculating the ratio using helper functions.
+#' @param ticker1 Ticker symbol for the denominator (e.g., "BTC-USD").
+#' @param ticker2 Ticker symbol for the numerator (e.g., "LINK-USD").
+#' @return A data frame with date, prices, and ratio, or NULL on failure.
+get_simple_crypto_ratio_refactored <- function(ticker1, ticker2) {
+  load_required_packages() # Ensure packages are loaded
+
+  # Process ticker names to get base currency names
+  base1 <- tolower(strsplit(ticker1, "-")[[1]][1])
+  base2 <- tolower(strsplit(ticker2, "-")[[1]][1])
+
+  # Fetch data using the helper
+  prices1 <- fetch_single_ticker_xts(ticker1)
+  prices2 <- fetch_single_ticker_xts(ticker2)
+
+  # Calculate ratio using the helper
+  final_df <- calculate_merged_ratio_df(prices1, prices2, base1, base2)
+
+  return(final_df)
+}
+
+# --- Example Usage for Phase 1 ---
+an_data <- get_simple_crypto_ratio_refactored("BTC-USD", "XRP-USD")
+print(head(an_data))
+```
+
+```{r, gini_analysis}
+# --- Helper Functions for Gini Analysis ---
+
+#' Validate Gini Input and Extract Names
+#' @param data Input data frame (output from get_simple_crypto_ratio).
+#' @return A list containing validation status, column names, and ticker names, or stops on error.
+validate_gini_input_and_names <- function(data) {
+  if (!is.data.frame(data)) stop("Input 'data' must be a data frame.")
+  if (!"date" %in% names(data)) stop("Input data frame must contain a 'date' column.")
+  if (ncol(data) != 4) stop("Input data frame must have exactly 4 columns: date, price1, price2, ratio.")
+
+  ratio_col_name <- names(data)[grepl("_ratio$", names(data))]
+  if (length(ratio_col_name) != 1) {
+    # Attempt fallback: assume 4th column is ratio if pattern fails
+     if(ncol(data) == 4) {
+         ratio_col_name <- names(data)[4]
+         warning("Could not definitively identify ratio column by '_ratio' suffix. Assuming it's the 4th column: '", ratio_col_name, "'")
+     } else {
+        stop("Could not identify a unique ratio column ending with '_ratio'. Found: ", paste(ratio_col_name, collapse=", "))
+     }
+  }
+
+  parts <- strsplit(ratio_col_name, "_")[[1]]
+  if (length(parts) < 3 || parts[length(parts)] != "ratio") {
+    stop("Ratio column name must be in the format 'ticker2_ticker1_ratio'. Found: '", ratio_col_name, "'")
+  }
+  ticker2_raw_name <- parts[1]
+  ticker1_raw_name <- parts[length(parts) - 1]
+
+  price_col_names <- setdiff(names(data), c("date", ratio_col_name))
+  expected_price_cols <- c(ticker1_raw_name, ticker2_raw_name)
+  if (!all(expected_price_cols %in% price_col_names) || length(price_col_names) != 2) {
+       stop("Expected price columns '", ticker1_raw_name, "' and '", ticker2_raw_name,
+            "' not found or extra columns present. Found columns: ", paste(names(data), collapse=", "))
+  }
+
+  return(list(
+    valid = TRUE,
+    ratio_col = ratio_col_name,
+    t1_raw = ticker1_raw_name,
+    t2_raw = ticker2_raw_name,
+    t1_name = toupper(ticker1_raw_name),
+    t2_name = toupper(ticker2_raw_name),
+    pair_name = paste0(toupper(ticker2_raw_name), "/", toupper(ticker1_raw_name))
+  ))
+}
+
+#' Prepare Log Ratio and Clean Data
+#' @param data Input data frame.
+#' @param ratio_col_name The name of the ratio column.
+#' @return Data frame with log_ratio calculated and invalid rows removed.
+prepare_log_ratio <- function(data, ratio_col_name) {
+   clean_data <- data %>%
+    filter(!is.na(!!sym(ratio_col_name)), is.finite(!!sym(ratio_col_name)), !!sym(ratio_col_name) != 0) %>%
+    mutate(log_ratio = log(!!sym(ratio_col_name)))
+
+   if (nrow(clean_data) < 20) {
+       stop("Insufficient valid ratio data points (found ", nrow(clean_data), ", need >= 20) after cleaning.")
+   }
+   return(clean_data)
+}
+
+#' Fit Gaussian Mixture Model
+#' @param log_ratio_vector Numeric vector of log ratios.
+#' @param k Number of mixture components (regimes).
+#' @return A fitted GMM object from mixtools or stops on error.
+fit_gmm_model <- function(log_ratio_vector, k = 2) {
+  model <- tryCatch({
+    # Add verb = FALSE to suppress internal iteration messages
+    mixtools::normalmixEM(log_ratio_vector, k = k, maxit = 1000, epsilon = 1e-06, verb = FALSE)
+  }, error = function(e) {
+      message("Error fitting GMM: ", e$message); return(NULL)
+  })
+  if (is.null(model)) stop("GMM fitting failed.")
+  return(model)
+}
+
+#' Calculate Regime and Z-Score from GMM
+#' @param data_with_log_ratio Data frame containing the log_ratio column.
+#' @param gmm_model The fitted GMM object.
+#' @return A list containing the data frame augmented with regime, mu, sigma, z_score, and the regime parameters df.
+calculate_regime_zscore <- function(data_with_log_ratio, gmm_model) {
+  data_out <- data_with_log_ratio %>%
+    mutate(regime = ifelse(gmm_model$posterior[, 1] > 0.5, 1, 2)) # Assumes k=2
+
+  regime_params <- data.frame(
+      regime = 1:length(gmm_model$mu),
+      mu = gmm_model$mu,
+      sigma = gmm_model$sigma
+  )
+
+  data_out <- data_out %>%
+    left_join(regime_params, by = "regime") %>%
+    mutate(z_score = (log_ratio - mu) / sigma)
+
+  return(list(data = data_out, params = regime_params))
+}
+
+#' Generate Z-Score Based Trading Signals
+#' @param data_with_zscore Data frame containing the z_score column.
+#' @param upper_threshold Upper Z-score threshold for short signal.
+#' @param lower_threshold Lower Z-score threshold for long signal.
+#' @param pair_name Formatted pair name (e.g., "ETH/BTC").
+#' @return Data frame augmented with the 'signal' column.
+generate_gini_signals <- function(data_with_zscore, upper_threshold, lower_threshold, pair_name) {
+  data_with_signals <- data_with_zscore %>%
+    mutate(
+      signal = case_when(
+        z_score > upper_threshold ~ paste("Short", pair_name, "(overvalued)"),
+        z_score < lower_threshold ~ paste("Long", pair_name, "(undervalued)"),
+        TRUE ~ "Hold"
+      )
+    )
+  return(data_with_signals)
+}
+
+# --- Helper Functions for Gini Plotting ---
+
+#' Create Gini Ratio/Z-Score Signal Plots
+#' @param plot_data The data frame with signals, z_score, regime etc.
+#' @param name_info List containing column/ticker names.
+#' @param upper_threshold Upper Z-score threshold.
+#' @param lower_threshold Lower Z-score threshold.
+#' @return A combined ggplot object (patchwork).
+plot_gini_signals <- function(plot_data, name_info, upper_threshold, lower_threshold) {
+   plot_ratio <- ggplot(plot_data, aes(x = date)) +
+    geom_line(aes(y = !!sym(name_info$ratio_col), color = as.factor(regime)), linewidth = 0.8) +
+    geom_point(data = filter(plot_data, signal != "Hold"),
+               aes(y = !!sym(name_info$ratio_col), shape = signal, color = as.factor(regime)),
+               size = 2.5, alpha = 0.8) +
+    scale_color_manual(values = c("1" = "#FF6B6B", "2" = "#4ECDC4"), name="Regime") +
+    scale_shape_discrete(name = "Signal") +
+    labs(title = paste(name_info$pair_name, "Ratio with Regimes and Trading Signals"),
+         y = paste(name_info$pair_name, "Ratio Value"), x = "Date") +
+    theme_minimal() + theme(legend.position = "bottom")
+
+  plot_zscore <- ggplot(plot_data, aes(x = date, y = z_score)) +
+    geom_line(color = "steelblue") +
+    geom_hline(yintercept = c(lower_threshold, upper_threshold),
+               linetype = "dashed", color = "gray40") +
+    geom_text(aes(x = min(date), y = upper_threshold, label = paste("Upper:", upper_threshold)), vjust = -0.5, hjust = 0, color = "gray40", size = 3) +
+    geom_text(aes(x = min(date), y = lower_threshold, label = paste("Lower:", lower_threshold)), vjust = 1.5, hjust = 0, color = "gray40", size = 3) +
+    labs(title = paste("Regime-Specific Z-Score with Thresholds for", name_info$pair_name),
+         y = "Z-Score", x = "Date") +
+    theme_minimal()
+
+  return(plot_ratio / plot_zscore + plot_layout(heights = c(2, 1)))
+}
+
+#' Create Gini Diagnostic Plots (Ratio Dist, QQ)
+#' @param plot_data The data frame with signals, z_score, regime etc.
+#' @param name_info List containing column/ticker names.
+#' @return A list containing ggplot objects for histogram and QQ plot.
+plot_gini_diagnostics <- function(plot_data, name_info) {
+  simple_ratio_plot <- ggplot(plot_data, aes(x = date, y = !!sym(name_info$ratio_col))) +
+    geom_line(color = "blue") +
+    labs(title = paste("Simple Time Series of", name_info$pair_name, "Ratio"),
+         y = paste(name_info$pair_name, "Ratio Value"), x = "Date") +
+    theme_minimal()
+
+  histogram_plot <- ggplot(plot_data, aes(x = !!sym(name_info$ratio_col))) +
+    geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "lightblue", color = "black", alpha = 0.7) +
+    geom_density(color = "red", linewidth = 1) +
+    labs(title = paste("Histogram and Density of", name_info$pair_name, "Ratio"),
+         x = paste(name_info$pair_name, "Ratio"), y = "Density") +
+    theme_minimal()
+
+  qq_plot <- ggplot(plot_data, aes(sample = log_ratio)) +
+      stat_qq(distribution = stats::qnorm, size=1, alpha=0.6) +
+      stat_qq_line(distribution = stats::qnorm, color = "red", linetype = "dashed", linewidth=1) +
+      labs(title = paste("Normal Q-Q Plot of log(", name_info$pair_name, " Ratio)"),
+           x = "Theoretical Normal Quantiles", y = "Sample Quantiles (Log Scale)") +
+      theme_minimal()
+
+   return(list(
+        simple_ratio = simple_ratio_plot,
+        histogram = histogram_plot,
+        qq = qq_plot
+   ))
+}
+
+#' Create Raw Price Plots
+#' @param plot_data The data frame with signals, z_score, regime etc.
+#' @param name_info List containing column/ticker names.
+#' @return A combined ggplot object (patchwork) showing individual prices.
+plot_gini_raw_prices <- function(plot_data, name_info) {
+  plot_price_ticker1 <- ggplot(plot_data, aes(x = date, y = !!sym(name_info$t1_raw))) +
+      geom_line(color = "#0072B2") +
+      labs(title = paste(name_info$t1_name, "Price (USD)"),
+           y = paste(name_info$t1_name, "Price"), x = "Date") +
+      theme_minimal()
+
+  plot_price_ticker2 <- ggplot(plot_data, aes(x = date, y = !!sym(name_info$t2_raw))) +
+      geom_line(color = "#D55E00") +
+      labs(title = paste(name_info$t2_name, "Price (USD)"),
+           y = paste(name_info$t2_name, "Price"), x = "Date") +
+      theme_minimal()
+
+  return(plot_price_ticker1 / plot_price_ticker2)
+}
+
+
+#Run Gini Lamp Analysis (Orchestrator - Corrected)
+#' Orchestrates the Gini analysis steps using helper functions.
+#' **This version prevents intermediate plotting during optimization.**
+#' @param data Data frame from get_simple_crypto_ratio_refactored.
+#' @param upper_threshold Upper Z-score threshold.
+#' @param lower_threshold Lower Z-score threshold.
+#' @return A list containing the data with signals and generated ggplot plot objects.
+run_gini_analysis <- function(data, upper_threshold = 1, lower_threshold = -0.8) {
+  name_info <- validate_gini_input_and_names(data)
+  data_logratio <- prepare_log_ratio(data, name_info$ratio_col)
+  gmm_model <- fit_gmm_model(data_logratio$log_ratio, k = 2) # Fit model
+  zscore_result <- calculate_regime_zscore(data_logratio, gmm_model)
+  data_with_signals <- generate_gini_signals(zscore_result$data, upper_threshold, lower_threshold, name_info$pair_name)
+  signal_plots <- plot_gini_signals(data_with_signals, name_info, upper_threshold, lower_threshold)
+  diagnostic_plots <- plot_gini_diagnostics(data_with_signals, name_info)
+  raw_price_plots <- plot_gini_raw_prices(data_with_signals, name_info)
+
+  results <- list(
+    data_with_signals = data_with_signals,
+    model_parameters = zscore_result$params,
+    # gmm_density_plot = plot(gmm_model, which = 2), # REMOVED this line to prevent plotting side-effect
+    signal_plots_combined = signal_plots,
+    simple_ratio_plot = diagnostic_plots$simple_ratio,
+    histogram_plot = diagnostic_plots$histogram,
+    qq_plot = diagnostic_plots$qq,
+    raw_price_plots = raw_price_plots,
+    # Optionally, return the model object itself if needed elsewhere (unlikely for final output)
+    gmm_model_object = gmm_model
+  )
+  return(results)
+}
+
+# --- Example Usage for Phase 2 ---
+#Assuming an_data exists from Phase 1
+if (!is.null(an_data)) {
+   analysis_results <- run_gini_analysis(an_data)
+   print(analysis_results$signal_plots_combined)
+   print(head(analysis_results$data_with_signals))
+} else {
+   message("Cannot run Gini analysis, input data is NULL.")
+}
+```
+
+```{r, validate_alladin_input_and params}
+
+#' Validate Aladdin Input and Parameters, Extract Names
+#' @param analysis_results The list output from run_gini_analysis.
+#' @param params A list containing backtest parameters (macd_fast, etc.).
+#' @return A list containing the validated data frame and verified name/parameter info.
+validate_aladdin_input_and_params <- function(analysis_results, params) {
+  if (!is.list(analysis_results) || !"data_with_signals" %in% names(analysis_results)) {
+    stop("Input 'analysis_results' must be a list containing 'data_with_signals'.")
+  }
+  data <- analysis_results$data_with_signals
+
+  # --- Improved Name Extraction ---
+  ratio_col_name <- names(data)[grepl("_ratio$", names(data))]
+
+  # Check if exactly ONE column matches the pattern
+  if (length(ratio_col_name) == 1) {
+      # Pattern worked, proceed with this name
+      parts <- strsplit(ratio_col_name, "_")[[1]]
+      if (length(parts) < 3 || parts[length(parts)] != "ratio") {
+          # Even if pattern matched, check format
+          stop("Ratio column '", ratio_col_name, "' found but format is not 'ticker2_ticker1_ratio'.")
+      }
+      ticker2_raw_name <- parts[1]
+      ticker1_raw_name <- parts[length(parts) - 1]
+
+  } else {
+      # Pattern failed (0 or >1 matches) - TRY the fallback, but make it safer
+      warning("Could not uniquely identify ratio column via '_ratio$' suffix. Attempting fallback guess...")
+      potential_cols <- setdiff(names(data), c("date", "log_ratio", "regime", "mu", "sigma", "z_score", "signal"))
+      # Check if exactly 3 columns remain (date, price1, price2, ratio - known = 7, so need 4 total if original input)
+      # BUT data now has GMM results, so check for date + 2 prices + 1 ratio = 4 expected in potential_cols
+      if (length(potential_cols) >= 3) {
+           # Let's ASSUME the order from get_simple_crypto_ratio was preserved BEFORE GMM cols were added: date, price1, price2, ratio
+           # So, after removing GMM cols etc, the original prices and ratio *should* be among the first few remaining columns.
+           # A safer guess might be the last one if we assume GMM cols were added at the end.
+           # Let's try guessing the 3rd column among the remaining potential ones (assuming price1, price2, ratio order)
+           # OR perhaps the FIRST one ending in ratio if multiple somehow exist? This is inherently fragile.
+
+           # --- REVISED FALLBACK: Prioritize any remaining column ending in _ratio ---
+           fallback_ratio_col <- potential_cols[grepl("_ratio$", potential_cols)]
+           if(length(fallback_ratio_col) == 1) {
+               ratio_col_name <- fallback_ratio_col
+               warning("Fallback successful: Assuming ratio column is '", ratio_col_name, "'.")
+               parts <- strsplit(ratio_col_name, "_")[[1]]
+               if (length(parts) < 3 || parts[length(parts)] != "ratio") stop("Fallback ratio column '", ratio_col_name, "' format is not 'ticker2_ticker1_ratio'.")
+               ticker2_raw_name <- parts[1]; ticker1_raw_name <- parts[length(parts) - 1]
+           } else {
+                # Fallback failed or was ambiguous
+                stop("Ratio column detection failed. Found columns: ", paste(names(data), collapse=", "))
+           }
+      } else {
+            stop("Ratio column detection failed. Could not apply fallback logic. Found columns: ", paste(names(data), collapse=", "))
+      }
+  }
+
+  # --- Validation continues (parameter checks, row checks, messages) ---
+  required_cols <- c("date", ticker1_raw_name, ticker2_raw_name, ratio_col_name, "signal", "z_score")
+  if (!all(required_cols %in% names(data))) {
+    stop("Input data frame 'data_with_signals' missing required columns derived from ratio name. Found: ", paste(names(data), collapse=", "))
+  }
+  p <- params
+  if (!is.numeric(p$macd_fast) || p$macd_fast <= 0) stop("'macd_fast' error.") # ... (rest of param checks) ...
+  if (!is.numeric(p$macd_slow) || p$macd_slow <= p$macd_fast) stop("'macd_slow' error.")
+  if (!is.numeric(p$macd_sig) || p$macd_sig <= 0) stop("'macd_sig' error.")
+  if (!is.numeric(p$initial_capital) || p$initial_capital <= 0) stop("'initial_capital' error.")
+  if (!is.numeric(p$txn_fee) || p$txn_fee < 0 || p$txn_fee >= 1) stop("'txn_fee' error.")
+  if (!is.numeric(p$stop_loss_pct) || p$stop_loss_pct <= 0 || p$stop_loss_pct >= 1) stop("'stop_loss_pct' error.")
+  required_rows = p$macd_slow + p$macd_sig - 1
+  if (nrow(data) <= required_rows) stop("Insufficient data rows for MACD.")
+
+  name_info <- list( t1_raw = ticker1_raw_name, t2_raw = ticker2_raw_name, t1_name = toupper(ticker1_raw_name), t2_name = toupper(ticker2_raw_name), ratio_col = ratio_col_name, pair_name = paste0(toupper(ticker2_raw_name), "/", toupper(ticker1_raw_name)) )
+
+  # Only print start message if print_trades = TRUE (assuming run_aladdin_backtest controls this)
+  # message("--- Starting PAIR Backtest for ", name_info$pair_name, " ---") # Moved to run_aladdin_backtest
+  # message("Parameters: MACD(", p$macd_fast, ",", p$macd_slow, ",", p$macd_sig, "), ", "Fee=", p$txn_fee*100, "%, Stop Loss=", p$stop_loss_pct*100, "%") # Moved
+
+  return(list(data = data, names = name_info, params = params))
+}
+
+```
+
+### **Trading Process:**
+
+```{r, calc_MACD_Signals}
+
+#' Calculate MACD and Signal Helpers for Aladdin
+#' @param data The validated data frame.
+#' @param name_info List with column names.
+#' @param params List with MACD parameters.
+#' @return List containing the data frame augmented with indicators and the valid start index.
+calculate_aladdin_indicators <- function(data, name_info, params) {
+  # Ensure required packages are loaded if run standalone
+  suppressPackageStartupMessages({ library(TTR); library(dplyr); library(zoo) })
+
+  macd_calc <- TTR::MACD(data[[name_info$ratio_col]],
+                        nFast = params$macd_fast,
+                        nSlow = params$macd_slow,
+                        nSig = params$macd_sig,
+                        maType = "EMA")
+  macd_df <- as.data.frame(macd_calc) %>% dplyr::rename(macd_signal_line = signal)
+
+  data_out <- data %>%
+    bind_cols(macd_df) %>%
+    mutate(
+      z_signal_direction = dplyr::case_when(
+        grepl("Long", signal, ignore.case = TRUE) ~ 1,
+        grepl("Short", signal, ignore.case = TRUE) ~ -1,
+        TRUE ~ 0
+      ),
+      prev_z_signal_direction = lag(z_signal_direction, 1, default = 0),
+      prev_macd = lag(macd, 1),
+      prev_macd_signal_line = lag(macd_signal_line, 1),
+      macd_cross_signal = case_when(
+        !is.na(macd) & !is.na(macd_signal_line) & !is.na(prev_macd) & !is.na(prev_macd_signal_line) &
+          macd > macd_signal_line & prev_macd <= prev_macd_signal_line ~ 1,  # Bullish crossover
+        !is.na(macd) & !is.na(macd_signal_line) & !is.na(prev_macd) & !is.na(prev_macd_signal_line) &
+          macd < macd_signal_line & prev_macd >= prev_macd_signal_line ~ -1, # Bearish crossover
+        TRUE ~ 0
+      )
+    ) %>%
+    arrange(date) # Ensure sorted by date
+
+  first_valid_signal_index <- which(
+       !is.na(data_out$z_signal_direction) & !is.na(data_out$prev_z_signal_direction) &
+       !is.na(data_out$macd) & !is.na(data_out$macd_signal_line) & !is.na(data_out$macd_cross_signal) &
+       !is.na(data_out[[name_info$t1_raw]]) & !is.na(data_out[[name_info$t2_raw]])
+       )[1]
+
+  start_index <- first_valid_signal_index
+  if (is.na(start_index)) {
+    stop("Could not find a valid starting point for signals and prices.")
+  }
+  start_index <- max(start_index, 2) # Ensure at least index 2
+
+  return(list(data = data_out, start_index = start_index))
+}
+```
+
+```{r, Init_backtest}
+
+#' Initialize Backtest State Variables
+#' @param data The data frame (used for structure).
+#' @param initial_capital Starting capital.
+#' @param start_index The simulation start index.
+#' @return A list representing the initial backtest state.
+initialize_backtest_state <- function(data, initial_capital, start_index) {
+  # Ensure required packages are loaded if run standalone
+  suppressPackageStartupMessages({ library(dplyr) })
+
+  equity_curve <- data %>%
+                      select(date) %>%
+                      mutate(cash_usd = NA_real_, qty_ticker1 = NA_real_, qty_ticker2 = NA_real_,
+                             price_ticker1 = NA_real_, price_ticker2 = NA_real_, # Will be filled daily
+                             equity = NA_real_)
+
+  # Pre-fill equity curve before simulation starts
+  if (start_index > 1) {
+      equity_curve$cash_usd[1:(start_index-1)] <- initial_capital
+      equity_curve$qty_ticker1[1:(start_index-1)] <- 0
+      equity_curve$qty_ticker2[1:(start_index-1)] <- 0
+      equity_curve$equity[1:(start_index-1)] <- initial_capital
+  }
+
+
+  state <- list(
+    cash_usd = initial_capital,
+    qty_ticker1 = 0.0,
+    qty_ticker2 = 0.0,
+    position_type = 0, # 0: Flat, 1: Long Ratio, -1: Short Ratio
+    entry_equity = NA_real_,
+    entry_date = NA_Date_,
+    entry_price_ticker1 = NA_real_,
+    entry_price_ticker2 = NA_real_,
+    equity_curve = equity_curve, # Structure ready
+    trades_log = list()       # Empty list for trade logs
+  )
+  return(state)
+}
+
+```
+
+```{r, backtest_simulation}
+# --- Block 4 Helper: process_daily_tick (Modified for Verbosity Control) ---
+
+#' Process One Day of the Backtest Simulation
+#' @param current_state The state list from the previous day.
+#' @param daily_data A single row data frame for the current day.
+#' @param name_info List with column names.
+#' @param params List with backtest parameters.
+#' @param print_trades Logical: Should ENTRY/EXIT/STOP messages be printed?
+#' @return An updated state list for the end of the current day.
+process_daily_tick <- function(current_state, daily_data, name_info, params, print_trades = TRUE) { # Added print_trades arg
+    state <- current_state
+    trade_log_entry <- NULL
+
+    current_date <- daily_data$date
+    price1 <- daily_data[[name_info$t1_raw]]
+    price2 <- daily_data[[name_info$t2_raw]]
+
+    if (is.na(price1) || is.na(price2) || price1 <= 0 || price2 <= 0) {
+        # Optionally print warning only if print_trades is TRUE? Or always print warnings? Let's keep it for now.
+        message(sprintf("WARNING: Skipping date %s due to invalid price(s): %s=%.4f, %s=%.4f",
+                        format(current_date), name_info$t1_name, price1, name_info$t2_name, price2))
+        return(state)
+    }
+
+    state$price_ticker1 <- price1
+    state$price_ticker2 <- price2
+    equity_sod = state$cash_usd + (state$qty_ticker1 * price1) + (state$qty_ticker2 * price2)
+    stop_loss_triggered = FALSE
+
+    if (state$position_type != 0 && !is.na(state$entry_equity)) {
+      current_trade_pnl_pct <- (equity_sod / state$entry_equity) - 1
+      if (current_trade_pnl_pct < -params$stop_loss_pct) {
+        # --- STOP LOSS MESSAGE BLOCK ---
+        if (print_trades) {
+            message(sprintf("STOP LOSS triggered at %s: PosType=%d, EntryEquity=%.2f, CurrentEquity=%.2f, PnL=%.2f%%",
+                          format(current_date), state$position_type, state$entry_equity, equity_sod, current_trade_pnl_pct * 100))
+        }
+        # --- END STOP LOSS MESSAGE BLOCK ---
+        stop_loss_triggered = TRUE
+        exit_reason = "Stop Loss"
+        cash_from_t1 = state$qty_ticker1 * price1 * (1 - params$txn_fee); cash_from_t2 = state$qty_ticker2 * price2 * (1 - params$txn_fee)
+        state$cash_usd <- state$cash_usd + cash_from_t1 + cash_from_t2; final_equity_sl = state$cash_usd
+        trade_log_entry <- data.frame( EntryDate = state$entry_date, ExitDate = current_date, PositionType = ifelse(state$position_type == 1, "Long Ratio", "Short Ratio"), EntryPriceT1 = state$entry_price_ticker1, EntryPriceT2 = state$entry_price_ticker2, ExitPriceT1 = price1, ExitPriceT2 = price2, EntryEquity = state$entry_equity, ExitEquity = final_equity_sl, PnL_Abs = final_equity_sl - state$entry_equity, PnL_Pct = current_trade_pnl_pct, ExitReason = exit_reason )
+        state$qty_ticker1 = 0; state$qty_ticker2 = 0; state$position_type = 0; state$entry_equity = NA; state$entry_date = NA; state$entry_price_ticker1 = NA; state$entry_price_ticker2 = NA
+      }
+    }
+
+    if (!stop_loss_triggered) {
+        current_z_signal <- daily_data$z_signal_direction; prev_z_signal <- daily_data$prev_z_signal_direction; current_macd_cross <- daily_data$macd_cross_signal
+        go_long_condition <- state$position_type == 0 && ((current_z_signal == 1 && prev_z_signal != 1) || (current_z_signal == 1 && current_macd_cross == 1))
+        go_short_condition <- state$position_type == 0 && ((current_z_signal == -1 && prev_z_signal != -1) || (current_z_signal == -1 && current_macd_cross == -1))
+        exit_long_condition <- state$position_type == 1 && ((current_z_signal != 1 && prev_z_signal == 1) || (current_macd_cross == -1))
+        exit_short_condition <- state$position_type == -1 && ((current_z_signal != -1 && prev_z_signal == -1) || (current_macd_cross == 1))
+
+        if ( (state$position_type == 1 && exit_long_condition) || (state$position_type == -1 && exit_short_condition) ) {
+            exit_reason <- if (state$position_type == 1) {if (current_z_signal != 1 && prev_z_signal == 1) "Z Signal Reversal" else "MACD Bear Cross"} else {if (current_z_signal != -1 && prev_z_signal == -1) "Z Signal Reversal" else "MACD Bull Cross"}
+            # --- EXIT MESSAGE BLOCK ---
+            if (print_trades) {
+                message(sprintf("EXIT %s triggered at %s: Reason: %s", ifelse(state$position_type==1, "Long Ratio", "Short Ratio"), format(current_date), exit_reason))
+            }
+            # --- END EXIT MESSAGE BLOCK ---
+            equity_before_exit_fees = equity_sod; trade_pnl_pct_pre_fee = (equity_before_exit_fees / state$entry_equity) - 1
+            cash_from_t1 = state$qty_ticker1 * price1 * (1 - params$txn_fee); cash_from_t2 = state$qty_ticker2 * price2 * (1 - params$txn_fee); state$cash_usd <- state$cash_usd + cash_from_t1 + cash_from_t2; final_equity_exit = state$cash_usd
+            trade_log_entry <- data.frame( EntryDate = state$entry_date, ExitDate = current_date, PositionType = ifelse(state$position_type == 1, "Long Ratio", "Short Ratio"), EntryPriceT1 = state$entry_price_ticker1, EntryPriceT2 = state$entry_price_ticker2, ExitPriceT1 = price1, ExitPriceT2 = price2, EntryEquity = state$entry_equity, ExitEquity = final_equity_exit, PnL_Abs = final_equity_exit - state$entry_equity, PnL_Pct = trade_pnl_pct_pre_fee, ExitReason = exit_reason )
+            state$qty_ticker1 = 0; state$qty_ticker2 = 0; state$position_type = 0; state$entry_equity = NA; state$entry_date = NA; state$entry_price_ticker1 = NA; state$entry_price_ticker2 = NA
+        } else if (state$position_type == 0 && (go_long_condition || go_short_condition)) {
+            state$entry_equity = equity_sod; capital_alloc = state$entry_equity / 2; total_entry_fee = (capital_alloc * params$txn_fee) * 2; state$cash_usd <- state$cash_usd - total_entry_fee
+            if (go_long_condition) {
+                entry_reason <- if (current_z_signal == 1 && prev_z_signal != 1) "Z Flip Long" else "Z Long + MACD Bull Cross"
+                # --- ENTRY LONG MESSAGE BLOCK ---
+                if (print_trades) { message(sprintf("ENTRY Long Ratio at %s: Reason: %s", format(current_date), entry_reason)) }
+                # --- END ENTRY LONG MESSAGE BLOCK ---
+                state$qty_ticker2 = capital_alloc / price2; state$qty_ticker1 = -(capital_alloc / price1); state$position_type = 1
+            } else {
+                entry_reason <- if (current_z_signal == -1 && prev_z_signal != -1) "Z Flip Short" else "Z Short + MACD Bear Cross"
+                 # --- ENTRY SHORT MESSAGE BLOCK ---
+                if (print_trades) { message(sprintf("ENTRY Short Ratio at %s: Reason: %s", format(current_date), entry_reason)) }
+                 # --- END ENTRY SHORT MESSAGE BLOCK ---
+                state$qty_ticker1 = capital_alloc / price1; state$qty_ticker2 = -(capital_alloc / price2); state$position_type = -1
+            }
+            state$entry_date = current_date; state$entry_price_ticker1 = price1; state$entry_price_ticker2 = price2
+        }
+    }
+    state$equity = state$cash_usd + (state$qty_ticker1 * price1) + (state$qty_ticker2 * price2); state$completed_trade_today <- trade_log_entry
+    return(state)
+}
+```
+
+```{r, trade_df}
+
+#' Assemble Trades Data Frame
+#' @param trades_log_list List of individual trade data frames.
+#' @return A single data frame of all trades, or an empty df with correct structure.
+assemble_trades_df <- function(trades_log_list) {
+  # Ensure required packages are loaded if run standalone
+  suppressPackageStartupMessages({ library(dplyr) })
+
+  if (length(trades_log_list) > 0) {
+      trades_df <- bind_rows(trades_log_list)
+      # Add PnL % based on actual entry equity and abs PnL after fees
+      # Handle case where EntryEquity might be NA or zero
+      trades_df <- trades_df %>%
+        mutate(PnL_Pct_Actual = case_when(
+                  is.na(EntryEquity) | EntryEquity == 0 ~ NA_real_,
+                  TRUE ~ PnL_Abs / EntryEquity
+                 ))
+      return(trades_df)
+  } else {
+      # Define empty df structure matching the log entry
+      return(data.frame(EntryDate=as.Date(character()), ExitDate=as.Date(character()),
+                        PositionType=character(), EntryPriceT1=numeric(), EntryPriceT2=numeric(),
+                        ExitPriceT1=numeric(), ExitPriceT2=numeric(), EntryEquity=numeric(),
+                        ExitEquity=numeric(), PnL_Abs=numeric(), PnL_Pct=numeric(),
+                        ExitReason=character(), PnL_Pct_Actual=numeric()))
+  }
+}
+
+```
+
+```{r, backtest_perform_results}
+#' Calculate Backtest Performance Metrics
+#' @param equity_curve_df The completed equity curve data frame.
+#' @param trades_df The completed trades data frame.
+#' @param initial_capital Starting capital.
+#' @param name_info List with ticker/pair names.
+#' @return A data frame summarizing performance metrics.
+calculate_performance_metrics <- function(equity_curve_df, trades_df, initial_capital, name_info) {
+   # Ensure required packages are loaded if run standalone
+   suppressPackageStartupMessages({ library(dplyr); library(zoo) })
+
+   if(nrow(equity_curve_df) == 0 || all(is.na(equity_curve_df$equity))){
+        warning("No valid equity data for performance calculation.")
+        # Return empty structure matching expected output
+        metrics = c("Pair", "Strategy", "Ticker1", "Ticker2", "Start Date", "End Date", "Duration (Days)",
+                   "Initial Capital", "Final Capital", "Total Return (%)", "Annualized Return (%)",
+                   "Max Drawdown (%)", "Sharpe Ratio (Ann.)", "Number of Trades", "Win Rate (%)",
+                   "Avg Trade PnL (Abs)", "Avg Win Trade (Abs)", "Avg Loss Trade (Abs)",
+                   "Avg Trade PnL (%)", "Avg Win Trade (%)", "Avg Loss Trade (%)",
+                   "Profit Factor (Abs PnL)")
+        return(data.frame(Metric=metrics, Value=NA_character_))
+   }
+
+   # Use last valid observation if tail is NA
+   final_equity_row <- equity_curve_df %>% filter(!is.na(equity)) %>% tail(1)
+   if(nrow(final_equity_row)==0) {
+       warning("Could not find any non-NA equity value.")
+        final_equity = initial_capital # Fallback? Or NA? Let's use initial for calc safety
+   } else {
+       final_equity = final_equity_row$equity
+   }
+
+   total_return = (final_equity / initial_capital) - 1
+   start_date_actual = first(equity_curve_df$date)
+   end_date_actual = last(equity_curve_df$date)
+   n_days = max(1, as.numeric(difftime(end_date_actual, start_date_actual, units = "days")))
+   annualized_return = if(is.finite(total_return) && n_days > 0) (1 + total_return)^(365.25 / n_days) - 1 else NA
+
+   # Calculate Drawdown on non-NA equity
+   equity_curve_calc <- equity_curve_df %>%
+      filter(!is.na(equity)) %>%
+      mutate(
+          peak = cummax(equity),
+          drawdown_pct = ifelse(peak > 0, (equity / peak) - 1, 0)
+      )
+   max_drawdown = if(nrow(equity_curve_calc)>0) min(equity_curve_calc$drawdown_pct, 0, na.rm = TRUE) else NA
+
+   # Sharpe Ratio
+   daily_equity <- equity_curve_df %>% filter(!is.na(equity)) %>% pull(equity)
+   if (length(daily_equity) > 1) {
+       daily_returns <- diff(daily_equity) / head(daily_equity, -1)
+       daily_returns <- daily_returns[is.finite(daily_returns) & head(daily_equity, -1) != 0]
+       sharpe_ratio = if (length(daily_returns) > 1 && sd(daily_returns, na.rm=TRUE) > 1e-9) { # Add tolerance for sd
+           mean(daily_returns, na.rm=TRUE) / sd(daily_returns, na.rm=TRUE) * sqrt(252)
+       } else { NA }
+   } else {
+       sharpe_ratio = NA
+   }
+
+
+   # Trade Stats
+   num_trades = nrow(trades_df)
+   if (num_trades > 0 && "PnL_Abs" %in% names(trades_df) && "PnL_Pct_Actual" %in% names(trades_df)) {
+       trades_valid <- trades_df %>% filter(!is.na(PnL_Abs)) # Exclude trades where PnL calc failed
+       winning_trades = sum(trades_valid$PnL_Abs > 0, na.rm = TRUE)
+       num_valid_trades = nrow(trades_valid)
+       win_rate = if(num_valid_trades > 0) winning_trades / num_valid_trades else NA
+
+       avg_trade_pnl_abs = if(num_valid_trades > 0) mean(trades_valid$PnL_Abs, na.rm = TRUE) else NA
+       avg_win_pnl_abs = if(winning_trades > 0) mean(trades_valid$PnL_Abs[trades_valid$PnL_Abs > 0], na.rm = TRUE) else NA
+       avg_loss_pnl_abs = if(num_valid_trades - winning_trades > 0) mean(trades_valid$PnL_Abs[trades_valid$PnL_Abs <= 0], na.rm = TRUE) else NA
+
+       trades_valid_pct <- trades_valid %>% filter(!is.na(PnL_Pct_Actual))
+       num_valid_trades_pct = nrow(trades_valid_pct)
+       winning_trades_pct = sum(trades_valid_pct$PnL_Abs > 0, na.rm=TRUE) # Count winners by Abs PnL still
+       avg_trade_pnl_pct = if(num_valid_trades_pct > 0) mean(trades_valid_pct$PnL_Pct_Actual, na.rm = TRUE) else NA
+       avg_win_pnl_pct = if(winning_trades_pct > 0) mean(trades_valid_pct$PnL_Pct_Actual[trades_valid_pct$PnL_Abs > 0], na.rm = TRUE) else NA
+       avg_loss_pnl_pct = if(num_valid_trades_pct - winning_trades_pct > 0) mean(trades_valid_pct$PnL_Pct_Actual[trades_valid_pct$PnL_Abs <= 0], na.rm = TRUE) else NA
+
+       gross_profit = sum(trades_valid$PnL_Abs[trades_valid$PnL_Abs > 0], na.rm = TRUE)
+       gross_loss = abs(sum(trades_valid$PnL_Abs[trades_valid$PnL_Abs <= 0], na.rm = TRUE))
+       profit_factor = if (gross_loss > 1e-9) gross_profit / gross_loss else ifelse(gross_profit > 0, Inf, NA) # Add tolerance
+   } else {
+       win_rate=NA; avg_trade_pnl_abs=NA; avg_win_pnl_abs=NA; avg_loss_pnl_abs=NA;
+       avg_trade_pnl_pct=NA; avg_win_pnl_pct=NA; avg_loss_pnl_pct=NA; profit_factor=NA;
+   }
+
+   # Format summary nicely
+   fmt_pct <- function(x) ifelse(is.na(x), NA_character_, sprintf("%.2f", x * 100))
+   fmt_pct4 <- function(x) ifelse(is.na(x), NA_character_, sprintf("%.4f", x * 100))
+   fmt_num <- function(x) ifelse(is.na(x), NA_character_, sprintf("%.2f", x))
+   fmt_int <- function(x) ifelse(is.na(x), NA_character_, sprintf("%d", x))
+
+   performance_summary <- data.frame(
+     Metric = c("Pair", "Strategy", "Ticker1", "Ticker2", "Start Date", "End Date", "Duration (Days)",
+                "Initial Capital", "Final Capital", "Total Return (%)", "Annualized Return (%)",
+                "Max Drawdown (%)", "Sharpe Ratio (Ann.)", "Number of Trades", "Win Rate (%)",
+                "Avg Trade PnL (Abs)", "Avg Win Trade (Abs)", "Avg Loss Trade (Abs)",
+                "Avg Trade PnL (%)", "Avg Win Trade (%)", "Avg Loss Trade (%)",
+                "Profit Factor (Abs PnL)"),
+     Value = c(name_info$pair_name, "Pair Trade: Z-Score + Ratio MACD", name_info$t1_name, name_info$t2_name,
+               format(start_date_actual, "%Y-%m-%d"), format(end_date_actual, "%Y-%m-%d"),
+               fmt_int(n_days), fmt_num(initial_capital), fmt_num(final_equity),
+               fmt_pct(total_return), fmt_pct(annualized_return),
+               fmt_pct(max_drawdown), fmt_num(sharpe_ratio),
+               fmt_int(num_trades), fmt_pct(win_rate),
+               fmt_num(avg_trade_pnl_abs), fmt_num(avg_win_pnl_abs), fmt_num(avg_loss_pnl_abs),
+               fmt_pct4(avg_trade_pnl_pct), fmt_pct4(avg_win_pnl_pct), fmt_pct4(avg_loss_pnl_pct),
+               fmt_num(profit_factor)
+              )
+   )
+
+   return(performance_summary)
+}
+```
+
+```{r, equity_curve_plot}
+#' Create Equity Curve Plot
+#' @param equity_curve_df Completed equity curve data frame.
+#' @param performance_summary Performance summary data frame (for annotations).
+#' @param name_info List with pair name.
+#' @return A ggplot object.
+plot_equity_curve <- function(equity_curve_df, performance_summary, name_info) {
+  # Ensure required packages are loaded if run standalone
+  suppressPackageStartupMessages({ library(ggplot2); library(scales) })
+
+  # Function to safely extract metric, handling NA from calculation or summary df
+  get_metric <- function(m, df = performance_summary) {
+      val <- df$Value[df$Metric == m]
+      if(length(val)==0 || is.na(val[1])) "N/A" else val[1]
+  }
+  init_cap <- get_metric("Initial Capital")
+  final_cap <- get_metric("Final Capital")
+  tot_ret <- get_metric("Total Return (%)")
+  max_dd <- get_metric("Max Drawdown (%)")
+  num_trades <- get_metric("Number of Trades")
+
+  subtitle <- sprintf("Initial: %s | Final: %s | Return: %s%% | Max DD: %s%% | Trades: %s",
+                         init_cap, final_cap, tot_ret, max_dd, num_trades)
+
+  # Filter NAs for plotting line smoothly
+  plot_data <- equity_curve_df %>% filter(!is.na(equity))
+
+  if(nrow(plot_data) < 2) {
+      warning("Not enough valid equity points to plot equity curve.")
+      return(ggplot() + labs(title=paste("Pair Trading Performance:", name_info$pair_name),
+                             subtitle="Insufficient data to plot equity curve", x="Date", y="Portfolio Equity (USD)") + theme_minimal())
+  }
+
+
+  ggplot(plot_data, aes(x = date, y = equity)) +
+    geom_line(color = "blue", linewidth = 1) +
+    labs(
+      title = paste("Pair Trading Performance:", name_info$pair_name, "(Z-Score + Ratio MACD)"),
+      subtitle = subtitle,
+      x = "Date", y = "Portfolio Equity (USD)"
+    ) +
+    theme_minimal() +
+    scale_y_continuous(labels = scales::comma)
+}
+```
+
+```{r, position_held}
+
+#' Reconstruct Position Held Based on Trade Log
+#' @param data_indicator The data frame with indicators.
+#' @param trades_df The data frame of completed trades.
+#' @return Data frame with an added 'position_type_held' column (1, -1, or 0).
+reconstruct_position_held <- function(data_indicator, trades_df) {
+    # Ensure required packages are loaded if run standalone
+    suppressPackageStartupMessages({ library(dplyr) })
+
+    data_out <- data_indicator %>% mutate(position_type_held = 0)
+    pos_vector <- rep(0, nrow(data_out))
+
+    if (nrow(trades_df) > 0 && all(c("EntryDate", "ExitDate", "PositionType") %in% names(trades_df))) {
+        # Ensure dates are Date objects
+        trades_df_sorted <- trades_df %>%
+             filter(!is.na(EntryDate) & !is.na(ExitDate)) %>% # Filter invalid dates if any
+             mutate(EntryDate = as.Date(EntryDate), ExitDate = as.Date(ExitDate)) %>%
+             arrange(EntryDate)
+
+        for (k in 1:nrow(trades_df_sorted)) {
+            # Find index range for the trade using >= comparison
+            entry_idx <- which(data_out$date >= trades_df_sorted$EntryDate[k])[1]
+            exit_idx_event <- which(data_out$date >= trades_df_sorted$ExitDate[k])[1] # Day exit occurs
+
+             # Position held *up to the day before* the exit event,
+             # unless entry/exit on same day (exit_idx_event == entry_idx)
+             exit_idx_hold <- if (!is.na(exit_idx_event) && exit_idx_event >= entry_idx) {
+                  max(entry_idx, exit_idx_event - 1) # Hold at least on entry day
+             } else if (is.na(exit_idx_event)) {
+                  # If exit date not found (e.g., beyond data range), assume held till end
+                  nrow(data_out)
+             } else {
+                  NA # Should not happen if entry_idx is valid
+             }
+
+            if(!is.na(entry_idx) && !is.na(exit_idx_hold) && entry_idx <= exit_idx_hold) {
+                pos_type_num = ifelse(trades_df_sorted$PositionType[k] == "Long Ratio", 1, -1)
+                # Apply position type to the calculated range
+                pos_vector[entry_idx:exit_idx_hold] <- pos_type_num
+            } else {
+                warning(paste("Could not accurately map trade dates to data index for trade row:", k,
+                              " EntryDate:", trades_df_sorted$EntryDate[k], "ExitDate:", trades_df_sorted$ExitDate[k]))
+            }
+        }
+    }
+    data_out$position_type_held <- pos_vector
+    return(data_out)
+}
+
+```
+
+```{r, detailed_plot}
+
+#' Create Detailed Multi-Panel Backtest Plot
+#' @param data_with_strategy Data frame including indicators and position held.
+#' @param trades_df Completed trades data frame.
+#' @param name_info List with column/ticker names.
+#' @param params List with parameter info (fee, stoploss).
+#' @return A ggplot object.
+plot_detailed_backtest <- function(data_with_strategy, trades_df, name_info, params) {
+   # Ensure required packages are loaded if run standalone
+   suppressPackageStartupMessages({ library(ggplot2); library(dplyr); library(tidyr); library(patchwork); library(rlang) })
+
+   # --- Prepare data for plotting ---
+   plot_data_long <- data_with_strategy %>%
+      # Select necessary columns dynamically
+      select(date,
+             !!sym(name_info$t1_raw),
+             !!sym(name_info$t2_raw),
+             !!sym(name_info$ratio_col),
+             z_score, macd, macd_signal_line,
+             position_type_held) %>%
+      # Rename before pivoting for nicer facet labels
+      rename(
+            !!paste("Price:", name_info$t1_name) := !!sym(name_info$t1_raw),
+            !!paste("Price:", name_info$t2_name) := !!sym(name_info$t2_raw),
+            Ratio = !!sym(name_info$ratio_col),
+            Z_Score = z_score, MACD = macd, MACD_Signal = macd_signal_line
+      ) %>%
+      pivot_longer(cols = -c(date, position_type_held), names_to = "Metric", values_to = "Value") %>%
+      # Ensure Metric order for plotting
+       mutate(Metric = factor(Metric, levels = c(paste("Price:", name_info$t1_name),
+                                                  paste("Price:", name_info$t2_name),
+                                                  "Ratio", "Z_Score", "MACD", "MACD_Signal"))) %>%
+      filter(!is.na(Value)) # Remove rows where value might be NA (e.g., start of MACD)
+
+   # --- Prepare trade points ---
+   # Check if trades_df is valid and has necessary columns
+    trade_points_data <- if(nrow(trades_df) > 0 && all(c("EntryDate", "ExitDate", "PositionType", "EntryPriceT1", "EntryPriceT2", "ExitPriceT1", "ExitPriceT2") %in% names(trades_df))) {
+        trades_df %>%
+            filter(!is.na(EntryPriceT1) & EntryPriceT1 != 0 & !is.na(ExitPriceT1) & ExitPriceT1 != 0 & # Add checks for valid prices
+                   !is.na(EntryPriceT2) & !is.na(ExitPriceT2)) %>%
+            mutate( EntryRatio = EntryPriceT2 / EntryPriceT1,
+                    ExitRatio = ExitPriceT2 / ExitPriceT1,
+                    TradeColor = ifelse(PositionType == "Long Ratio", "darkgreen", "darkred") ) %>%
+            pivot_longer(cols = c(EntryDate, ExitDate), names_to = "PointTypeDate", values_to = "date") %>%
+             mutate(date = as.Date(date)) %>% # Ensure date format
+             filter(!is.na(date)) %>% # Remove if date conversion failed
+            mutate( PointType = sub("Date$", "", PointTypeDate),
+                    RatioValue = ifelse(PointType == "Entry", EntryRatio, ExitRatio),
+                    PointShape = ifelse(PointType == "Entry", 17, 15) ) %>% # Triangle up / Square
+            select(date, PositionType, PointType, RatioValue, PointShape, TradeColor) %>%
+            mutate(Metric = factor("Ratio", levels = levels(plot_data_long$Metric))) # Assign to Ratio facet
+    } else { NULL } # Handle case with no trades or missing columns
+
+   # --- Prepare position shading ---
+    position_shading_data <- data_with_strategy %>%
+        select(date, position_type_held) %>%
+        mutate(position_change = position_type_held != lag(position_type_held, default = -999)) %>%
+        # Keep rows where position changes OR first/last row to ensure full range coverage
+        filter(position_change | row_number() == 1 | row_number() == n()) %>%
+        mutate( start_date = lag(date, default = first(data_with_strategy$date)), # Start is previous change date (or first overall date)
+                end_date = date, # End is current change date
+                position = lag(position_type_held, default = first(position_type_held)) # Position held *before* this change
+              ) %>%
+        filter(position != 0) %>% # Only shade active positions
+        # Adjust start/end slightly to avoid gaps between rects if needed (optional)
+        # mutate(start_date = start_date - days(1))
+        mutate( fill_color = case_when(position == 1 ~ "lightgreen", position == -1 ~ "lightcoral", TRUE ~ NA_character_),
+                ymin = -Inf, ymax = Inf ) %>%
+        select(start_date, end_date, position, fill_color, ymin, ymax)
+
+   # --- Build the plot ---
+   detailed_plot <- ggplot(plot_data_long, aes(x = date, y = Value)) +
+      # Add shading layer first
+      geom_rect(data = position_shading_data,
+                aes(xmin = start_date, xmax = end_date, ymin = ymin, ymax = ymax, fill = fill_color),
+                inherit.aes = FALSE, alpha = 0.2) +
+      # Add metric lines
+      geom_line(aes(color = Metric), linewidth = 0.8) +
+      # Add zero lines for specific metrics
+      geom_hline(data = filter(plot_data_long, Metric %in% c("Z_Score", "MACD")),
+                 aes(yintercept = 0), linetype = "dashed", color = "grey50")
+
+    # Add trade points if they exist and are valid
+    if (!is.null(trade_points_data) && nrow(trade_points_data) > 0) {
+       detailed_plot <- detailed_plot +
+          geom_point(data = trade_points_data, # Trade markers
+                     aes(x = date, y = RatioValue, shape = factor(PointType), color = TradeColor),
+                     size = 2.5, alpha=0.8) # Reduced size slightly
+    }
+
+    # Add facets and scales
+    detailed_plot <- detailed_plot +
+      facet_wrap(~ Metric, scales = "free_y", ncol = 1, strip.position = "right") + # Faceting
+      scale_color_manual( # Define colors for lines AND trade points
+        name = "Metric / Trade",
+        values = c( setNames(c("blue", "orange", "purple", "black", "red", "darkblue"), # Line colors
+                              levels(plot_data_long$Metric)),
+                    "darkgreen" = "darkgreen", # Trade point colors
+                    "darkred" = "darkred" ),
+        labels = c( setNames(levels(plot_data_long$Metric), levels(plot_data_long$Metric)),
+                    "darkgreen" = "Long Ratio Trade", "darkred" = "Short Ratio Trade" ),
+        # Ensure trade colors appear even if no trades, or drop if no trades? Drop for now.
+        drop = FALSE
+        ) +
+      scale_shape_manual( name = "Trade Action", values = c("Entry" = 17, "Exit" = 15), labels = c("Entry", "Exit"), drop = FALSE ) +
+      scale_fill_identity(name = "Position Held", labels = c("lightgreen" = "Long Ratio", "lightcoral" = "Short Ratio"), guide = "legend") +
+      guides(color = guide_legend(override.aes = list(shape = NA)), # Legend cleanup
+             shape = guide_legend(override.aes = list(color = "black"))) + # Ensure shape legend uses black
+      labs( title = paste("Detailed Backtest Visualization:", name_info$pair_name),
+            subtitle = paste("Strategy: Z-Score + Ratio MACD. Fee:", params$txn_fee*100,"% / leg. Stop:", params$stop_loss_pct*100,"%"),
+            x = "Date", y = "Value" ) +
+      theme_bw() +
+      theme(legend.position = "bottom", legend.box="vertical", legend.margin=margin(t = 0, r = 0, b = 0, l = 0), # Adjust legend spacing
+            strip.background = element_blank(),
+            strip.text.y.right = element_text(angle = 0),
+            panel.spacing.y = unit(0.5, "lines"))
+
+    return(detailed_plot)
+}
+
+
+```
+
+```{r, run_backtest}
+# --- Block 4: Aladdin Strategy Backtest Module (Orchestrator - Modified for Verbosity) ---
+
+#' Run Aladdin Backtest (Orchestrator)
+#' Orchestrates the backtest setup, simulation loop, and post-processing.
+#' @param analysis_results List output from run_gini_analysis.
+#' @param print_trades Logical: Should daily trade messages be printed? Defaults to TRUE.
+#' @param ... Other parameters passed to the backtest (macd_fast, initial_capital, etc.)
+#' @return A list containing performance summary, equity curve, trade log, and plots.
+run_aladdin_backtest <- function(analysis_results, print_trades = TRUE, ...) { # Added print_trades arg
+  params <- list(...)
+
+  # --- 1. Setup ---
+  validated <- validate_aladdin_input_and_params(analysis_results, params)
+  indicator_res <- calculate_aladdin_indicators(validated$data, validated$names, validated$params)
+  sim_data <- indicator_res$data; start_index <- indicator_res$start_index
+  current_state <- initialize_backtest_state(sim_data, validated$params$initial_capital, start_index)
+
+  # --- 2. Simulation Loop ---
+  if (print_trades) { # Only print start message if printing trades
+      message("Starting simulation loop from row ", start_index, " (Date: ", sim_data$date[start_index], ")")
+  }
+  all_trade_logs <- list()
+  for (i in start_index:nrow(sim_data)) {
+      # Pass the print_trades argument down
+      current_state <- process_daily_tick(current_state, sim_data[i, ], validated$names, validated$params, print_trades = print_trades)
+      # Record EOD state (unchanged)
+      current_state$equity_curve$cash_usd[i] <- current_state$cash_usd; current_state$equity_curve$qty_ticker1[i] <- current_state$qty_ticker1
+      current_state$equity_curve$qty_ticker2[i] <- current_state$qty_ticker2; current_state$equity_curve$price_ticker1[i] <- current_state$price_ticker1
+      current_state$equity_curve$price_ticker2[i] <- current_state$price_ticker2; current_state$equity_curve$equity[i] <- current_state$equity
+      if (!is.null(current_state$completed_trade_today)) { all_trade_logs[[length(all_trade_logs) + 1]] <- current_state$completed_trade_today; current_state$completed_trade_today <- NULL }
+  }
+  if (print_trades) { # Only print completion message if printing trades
+    message("--- Backtest Simulation Complete ---")
+  }
+
+  # --- 3. Post-Processing ---
+  if (print_trades) { # Only print output message if printing trades
+     message("--- Preparing Output ---")
+  }
+  equity_curve_final <- current_state$equity_curve %>% dplyr::filter(dplyr::row_number() >= start_index) %>% tidyr::fill(equity, cash_usd, qty_ticker1, qty_ticker2, price_ticker1, price_ticker2, .direction = "down") %>%
+    tidyr::fill(equity, cash_usd, qty_ticker1, qty_ticker2, price_ticker1, price_ticker2, .direction = "up")
+  trades_df <- assemble_trades_df(all_trade_logs)
+  performance_summary <- calculate_performance_metrics(equity_curve_final, trades_df, validated$params$initial_capital, validated$names)
+  equity_plot <- plot_equity_curve(equity_curve_final, performance_summary, validated$names)
+  data_with_pos <- reconstruct_position_held(sim_data, trades_df)
+  data_plot_ready <- data_with_pos %>% dplyr::left_join(equity_curve_final %>% dplyr::select(date, equity, cash_usd, qty_ticker1, qty_ticker2), by = "date")
+  detailed_plot <- plot_detailed_backtest(data_plot_ready, trades_df, validated$names, validated$params)
+
+  # --- 4. Package Results ---
+  return(list( performance_summary = performance_summary, equity_curve_data = equity_curve_final, trades_log = trades_df,
+               performance_plot = equity_plot, detailed_plot = detailed_plot, data_with_strategy = data_plot_ready ))
+}
+```
+
+## **Optimizations**
+
+```{r, omega_ratio_function}
+# --- Block 5a: Optimization Helper Functions ---
+
+#' Calculate Omega Ratio
+#' Calculates the Omega ratio for a given equity curve.
+#' @param equity_curve_data Data frame with 'equity' column.
+#' @param threshold Minimum acceptable return for Omega calculation (numeric).
+#' @return Omega ratio value (numeric) or -Inf on error/invalid data.
+calculate_omega <- function(equity_curve_data, threshold = 0) {
+  if (!is.data.frame(equity_curve_data) || !"equity" %in% names(equity_curve_data) || nrow(equity_curve_data) < 3) {
+    warning("Omega Calc: Invalid equity data (need >= 3 rows).")
+    return(-Inf)
+  }
+  equity_numeric <- stats::na.omit(equity_curve_data$equity)
+  if(length(equity_numeric) < 3) {
+       warning("Omega Calc: Not enough non-NA equity values (need >= 3).")
+       return(-Inf)
+  }
+  returns <- diff(log(equity_numeric)); returns <- returns[is.finite(returns)]
+  if (length(returns) < 2) {
+      warning("Omega Calc: Insufficient valid returns (need >= 2).")
+      return(-Inf)
+  }
+  if (sd(returns) < .Machine$double.eps) {
+      warning("Omega Calc: Zero volatility in returns.")
+      return(-Inf)
+   }
+  omega_val <- tryCatch({
+      pa_omega <- PerformanceAnalytics::Omega(R = returns, L = threshold)
+      if(is.numeric(pa_omega) && length(pa_omega) == 1) pa_omega else -Inf
+  }, error = function(e){
+      warning("Omega Calc Error (PerformanceAnalytics): ", e$message); return(-Inf)
+  })
+  if (!is.finite(omega_val)) {
+      warning("Omega Calc: Non-finite Omega value returned.")
+      return(-Inf)
+  }
+  return(omega_val)
+}
+
+```
+
+```{r, params_function }
+#' Sample One Set of Valid Strategy Parameters
+#' Generates a random set of parameters within defined bounds/values, ensuring constraints like MACD slow > fast.
+#' @param bounds List defining search bounds for continuous params (e.g., list(upper_threshold=c(0.5, 2.5), ...)).
+#' @param values List defining discrete values for discrete params (e.g., list(macd_fast=c(9,12,15), ...)).
+#' @return A named list representing one valid parameter set.
+sample_strategy_parameters <- function(bounds, values) {
+  valid_params <- FALSE
+  attempts <- 0
+  while(!valid_params && attempts < 100) { # Add attempt limit
+      attempts <- attempts + 1
+      params <- list(
+        upper_threshold = runif(1, bounds$upper_threshold[1], bounds$upper_threshold[2]),
+        lower_threshold = runif(1, bounds$lower_threshold[1], bounds$lower_threshold[2]),
+        macd_fast = sample(values$macd_fast, 1),
+        macd_slow = sample(values$macd_slow, 1),
+        macd_sig = sample(values$macd_sig, 1),
+        stop_loss_pct = runif(1, bounds$stop_loss[1], bounds$stop_loss[2])
+      )
+      if (params$macd_slow > params$macd_fast) {
+          valid_params <- TRUE
+      }
+  }
+  if(!valid_params) stop("Could not generate valid parameters after 100 attempts (check constraints).")
+  return(params)
+}
+
+
+
+```
+
+```{r, evaluating_params}
+# --- Block 5a Helper: evaluate_parameter_set (Modified for Verbosity Control) ---
+
+#' Evaluate Strategy for One Parameter Set (Objective Function)
+#' Runs the full get_data -> Gini -> Aladdin -> Omega pipeline.
+#' Requires `get_simple_crypto_ratio_refactored`, `run_gini_analysis`, `run_aladdin_backtest` to be defined/loaded.
+#' @param params A named list of parameters for this run.
+#' @param ticker1 Denominator ticker.
+#' @param ticker2 Numerator ticker.
+#' @param fixed_params List of fixed parameters (initial_capital, txn_fee, omega_threshold).
+#' @return The calculated Omega ratio (numeric), or -Inf on error.
+evaluate_parameter_set <- function(params, ticker1, ticker2, fixed_params) {
+  result_score <- -Inf
+  tryCatch({
+    raw_data <- get_simple_crypto_ratio_refactored(ticker1, ticker2)
+    if (is.null(raw_data) || nrow(raw_data) < 50) stop("Insufficient raw data.")
+
+    analysis_output <- run_gini_analysis(data = raw_data,
+                                         upper_threshold = params$upper_threshold,
+                                         lower_threshold = params$lower_threshold)
+    if (is.null(analysis_output) || is.null(analysis_output$data_with_signals)) stop("Gini analysis failed.")
+
+    required_rows_macd = params$macd_slow + params$macd_sig
+    if(nrow(analysis_output$data_with_signals) <= required_rows_macd) stop("Insufficient data post-Gini for MACD.")
+
+    # Call backtest with print_trades = FALSE during optimization
+    backtest_results <- run_aladdin_backtest(
+         analysis_results = analysis_output,
+         print_trades = FALSE, # <<< MODIFICATION HERE
+         macd_fast = params$macd_fast, macd_slow = params$macd_slow, macd_sig = params$macd_sig,
+         initial_capital = fixed_params$initial_capital, txn_fee = fixed_params$txn_fee,
+         stop_loss_pct = params$stop_loss_pct
+         )
+    if (is.null(backtest_results) || is.null(backtest_results$equity_curve_data)) stop("Aladdin backtest failed.")
+
+    result_score <- calculate_omega(backtest_results$equity_curve_data, threshold = fixed_params$omega_threshold)
+
+  }, error = function(e) {
+    param_str <- paste(names(params), sapply(params, function(x) round(x, 3)), collapse=", ")
+    # Keep this warning, it's useful for debugging failed iterations
+    warning(paste("Eval Error [", param_str, "]: ", e$message))
+    result_score <<- -Inf
+  })
+  return(result_score)
+}
+
+```
+
+```{r, optimized_sim}
+# --- Block 5a Helper: rerun_best_simulation (Modified for Verbosity Control) ---
+
+#' Rerun Simulation with Best Parameters
+#' Executes the Gini -> Aladdin pipeline once with a specific (best) parameter set.
+#' Requires `get_simple_crypto_ratio_refactored`, `run_gini_analysis`, `run_aladdin_backtest` to be defined/loaded.
+#' @param best_params The winning parameter set (named list).
+#' @param ticker1 Denominator ticker.
+#' @param ticker2 Numerator ticker.
+#' @param fixed_params List of fixed parameters (initial_capital, txn_fee).
+#' @return The detailed results list from `run_aladdin_backtest`, or NULL on error.
+rerun_best_simulation <- function(best_params, ticker1, ticker2, fixed_params) {
+   message("\n--- Rerunning simulation with best parameters... ---")
+   detailed_results <- NULL
+   tryCatch({
+        raw_data_best <- get_simple_crypto_ratio_refactored(ticker1, ticker2); if (is.null(raw_data_best) || nrow(raw_data_best) < 50) stop("Failed raw data.")
+        # Use the Gini analysis function that doesn't plot intermediates
+        analysis_output_best <- run_gini_analysis(data = raw_data_best, upper_threshold = best_params$upper_threshold, lower_threshold = best_params$lower_threshold); if (is.null(analysis_output_best)) stop("Gini failed.")
+        required_rows_macd = best_params$macd_slow + best_params$macd_sig; if(nrow(analysis_output_best$data_with_signals) <= required_rows_macd) stop("Insufficient data post-Gini.")
+
+        # Call backtest with print_trades = TRUE for the final run
+        detailed_results <- run_aladdin_backtest(
+            analysis_results = analysis_output_best,
+            print_trades = TRUE, # <<< MODIFICATION HERE
+            macd_fast = best_params$macd_fast, macd_slow = best_params$macd_slow, macd_sig = best_params$macd_sig,
+            initial_capital = fixed_params$initial_capital, txn_fee = fixed_params$txn_fee,
+            stop_loss_pct = best_params$stop_loss_pct
+         ); if(is.null(detailed_results)) stop("Aladdin failed.")
+        message("Detailed results generated successfully.")
+    }, error = function(e) {
+        warning("Final run error: ", e$message); detailed_results <- NULL
+    })
+    return(detailed_results)
+}
+```
+
+## **Optimizations ran**
+
+```{r, function_runner}
+# --- Block 5b: Optimization Orchestrator Function (Simplified Output) ---
+
+#' Optimize Crypto Strategy (Orchestrator)
+#' Performs random search optimization using helper functions.
+#' Assumes helper functions (Block 5a) and strategy pipeline functions are loaded.
+#' @param ticker1 Denominator ticker.
+#' @param ticker2 Numerator ticker.
+#' @param param_bounds List defining search bounds for continuous params.
+#' @param param_values List defining discrete values for discrete params.
+#' @param n_iterations Number of random parameter sets to test.
+#' @param fixed_params List of non-optimized parameters.
+#' @param set_seed Seed for reproducibility.
+#' @param return_details Boolean: Rerun best params for full results? **Set to TRUE if you want the final plots/summary.**
+#' @param return_iterations_log Boolean: Return the full log of all iterations?
+#' @param verbose Boolean: Print progress messages?
+#' @return A list containing best parameters, score, and optionally selected details of the best run and/or the iteration log.
+run_strategy_optimization <- function( ticker1, ticker2, param_bounds, param_values, n_iterations = 50,
+                                              fixed_params = list(initial_capital = 10000, txn_fee = 0.001, omega_threshold = 0),
+                                              workers = future::availableCores() - 1,
+                                              set_seed = 123,
+                                              return_details = TRUE,
+                                              return_iterations_log = TRUE,
+                                              verbose = TRUE ) {
+
+  # ... (Package checks, Setup, Parameter generation - same as before) ...
+  if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("future.apply", quietly = TRUE)) stop("Packages 'future' and 'future.apply' are required.", call. = FALSE)
+  if (verbose) message("--- Starting PARALLEL Optimization for ", ticker1, " / ", ticker2, " ---")
+  if (!is.null(set_seed)) set.seed(set_seed)
+  if (verbose) message("Generating ", n_iterations, " parameter sets...")
+  param_list <- replicate(n_iterations, sample_strategy_parameters(bounds = param_bounds, values = param_values), simplify = FALSE)
+  num_workers <- max(1, min(workers, future::availableCores())); if (verbose) message("Setting up parallel backend with ", num_workers, " workers...")
+  future::plan(future::multisession, workers = num_workers); on.exit(future::plan(future::sequential), add = TRUE)
+
+  # --- Define Functions and Packages needed on workers ---
+  functions_to_export <- c("evaluate_parameter_set", "get_simple_crypto_ratio_refactored", "fetch_single_ticker_xts", "calculate_merged_ratio_df", "run_gini_analysis", "validate_gini_input_and_names", "prepare_log_ratio", "fit_gmm_model", "calculate_regime_zscore", "generate_gini_signals", "run_aladdin_backtest", "validate_aladdin_input_and_params", "calculate_aladdin_indicators", "initialize_backtest_state", "process_daily_tick", "assemble_trades_df", "calculate_performance_metrics", "reconstruct_position_held", "calculate_omega")
+  missing_funcs <- functions_to_export[!sapply(functions_to_export, exists, where = .GlobalEnv, mode = "function")]
+  if (length(missing_funcs) > 0) stop("Missing functions needed for parallel execution: ", paste(missing_funcs, collapse=", "), call. = FALSE)
+
+  # --- Run Evaluations in Parallel ---
+  if (verbose) message("Running ", n_iterations, " evaluations in parallel...")
+  start_time <- Sys.time()
+  omega_results <- future.apply::future_lapply(
+      param_list,
+      FUN = evaluate_parameter_set,
+      ticker1 = ticker1, ticker2 = ticker2, fixed_params = fixed_params,
+      future.seed = TRUE,
+      future.globals = structure(TRUE, add = functions_to_export),
+      # Explicitly add rlang here
+      future.packages = c("quantmod", "xts", "dplyr", "rlang", "mixtools", "TTR", "PerformanceAnalytics", "stats", "zoo", "tidyr")
+      )
+  end_time <- Sys.time(); total_time <- end_time - start_time
+  if (verbose) message("Parallel evaluations completed in: ", format(total_time))
+
+  # --- Process Results (same as before) ---
+  best_omega_score <- -Inf; best_params <- NULL; best_index <- NA
+  for (i in 1:n_iterations) { current_omega <- omega_results[[i]]; if (is.finite(current_omega) && current_omega > best_omega_score) { best_omega_score <- current_omega; best_params <- param_list[[i]]; best_index <- i } }
+  message("\n--- Optimization Complete ---")
+  if(!is.null(best_params)){ message(sprintf("Best Omega Score Found: %.4f (from iteration %d)", best_omega_score, best_index)); message("Best Parameters:"); print(as.data.frame(best_params)) } else { message("Optimization failed to find valid parameters."); best_omega_score <- NA }
+
+  # --- Combine results for log (same as before) ---
+  results_log_df <- NULL
+  if(return_iterations_log) { results_log_df <- dplyr::bind_rows(lapply(1:n_iterations, function(i) { if(!is.null(param_list[[i]])) dplyr::bind_cols(as.data.frame(param_list[[i]]), data.frame(omega = omega_results[[i]])) else NULL })) }
+
+  # --- Rerun Best (same as before) ---
+  detailed_results_obj <- NULL
+  if (return_details && !is.null(best_params)) { rerun_fixed_params <- fixed_params[!names(fixed_params) %in% "omega_threshold"]; detailed_results_obj <- rerun_best_simulation(best_params, ticker1, ticker2, rerun_fixed_params); if(is.null(detailed_results_obj)) message("NOTE: Detailed results could not be generated (final run failed).") } else if (return_details) { message("NOTE: Cannot generate detailed results (no best parameters found).") }
+
+  # --- Package Output (same as before) ---
+  output <- list(best_parameters = best_params, best_omega_score = best_omega_score)
+  if (return_iterations_log && !is.null(results_log_df)) { output$all_iteration_results_df <- results_log_df }
+  if (!is.null(detailed_results_obj)) { output$details_best_run <- list( performance_summary = detailed_results_obj$performance_summary, equity_curve_plot = detailed_results_obj$performance_plot, detailed_backtest_plot = detailed_results_obj$detailed_plot ) } else if(return_details){ output$details_best_run <- NULL }
+  return(output)
+}
+```
+
+### **Shiny setup**
+
+```{r, shiny_data_aggregator}
+# --- Block 6a: Shiny App Helper Function (Data Aggregation) --- (REVISED v2)
+
+#' Aggregate Optimization Results for Heatmap
+#' Takes optimization results data frame and aggregates for heatmap plotting.
+#' @param data Cleaned data frame of optimization results.
+#' @param x_col Name of the column for the heatmap x-axis (string).
+#' @param y_col Name of the column for the heatmap y-axis (string).
+#' @param value_col Name of the column for cell color average value (string, e.g., "omega").
+#' @param n_bins_x Number of bins for the x-axis (integer).
+#' @param n_bins_y Number of bins for the y-axis (integer).
+#' @return A list containing the z-matrix, x-labels, y-labels, and column names, or NULL on error.
+aggregate_heatmap_data <- function(data, x_col, y_col, value_col, n_bins_x = 15, n_bins_y = 15) {
+
+  if (!is.data.frame(data) || nrow(data) < 3) {
+      warning("Heatmap Agg: Need at least 3 data points.")
+      return(NULL)
+  }
+  required_cols <- c(x_col, y_col, value_col)
+  if (!all(required_cols %in% names(data))) {
+     warning("Heatmap Agg: Data frame missing required columns.")
+     return(NULL)
+  }
+
+  tryCatch({
+      # --- Create Bins and Calculate Mean Value ---
+      # Use cut to get interval labels directly
+      heatmap_aggregated <- data %>%
+        dplyr::mutate(
+          x_bin_label = cut(.data[[x_col]], breaks = n_bins_x, include.lowest = TRUE, dig.lab = 4),
+          y_bin_label = cut(.data[[y_col]], breaks = n_bins_y, include.lowest = TRUE, dig.lab = 4)
+        ) %>%
+        dplyr::filter(!is.na(x_bin_label) & !is.na(y_bin_label)) %>%
+        dplyr::group_by(x_bin_label, y_bin_label) %>%
+        dplyr::summarise(mean_value = mean(.data[[value_col]], na.rm = TRUE), .groups = 'drop') %>%
+        dplyr::filter(is.finite(mean_value))
+
+      if(nrow(heatmap_aggregated) == 0) stop("No valid aggregated data points after binning.")
+
+      # --- Get the ordered factor levels for axes ---
+      # Base levels on the aggregated data to avoid issues with totally empty bins
+       x_axis_labels <- levels(factor(heatmap_aggregated$x_bin_label))
+       y_axis_labels <- levels(factor(heatmap_aggregated$y_bin_label))
+
+       if (length(x_axis_labels) == 0 || length(y_axis_labels) == 0) {
+           stop("Could not determine axis labels after aggregation.")
+       }
+
+      # --- Prepare Matrix using tidyr::complete and pivot_wider ---
+       heatmap_matrix_data <- heatmap_aggregated %>%
+            # Ensure all combinations of *observed* x/y labels exist, filling missing with NA
+            tidyr::complete(x_bin_label = x_axis_labels, # Use levels from aggregated data
+                            y_bin_label = y_axis_labels,
+                            fill = list(mean_value = NA_real_)) %>%
+            # Pivot to wide format
+            tidyr::pivot_wider(names_from = x_bin_label,
+                               values_from = mean_value) %>%
+            # Arrange rows according to the desired y-axis order (factor levels)
+            dplyr::arrange(factor(y_bin_label, levels = y_axis_labels))
+
+
+      # --- Extract Matrix ---
+       # First column should be y_bin_label, the rest are x bins (z values)
+       y_labels_in_matrix <- heatmap_matrix_data$y_bin_label # Store the y labels as they appear
+       heatmap_matrix <- as.matrix(heatmap_matrix_data %>% dplyr::select(-y_bin_label))
+
+       # Ensure column order matches x_axis_labels (important!)
+       # Handle cases where pivot_wider might not produce all columns if a level had only NAs
+       present_x_labels <- colnames(heatmap_matrix)
+       if (!identical(present_x_labels, x_axis_labels)) {
+           # Reorder existing columns and add missing columns as NA if necessary
+           temp_matrix <- matrix(NA_real_,
+                                 nrow = nrow(heatmap_matrix),
+                                 ncol = length(x_axis_labels),
+                                 dimnames = list(rownames(heatmap_matrix), x_axis_labels))
+           # Fill in the values from the original matrix
+           common_cols <- intersect(x_axis_labels, present_x_labels)
+           temp_matrix[, common_cols] <- heatmap_matrix[, common_cols]
+           heatmap_matrix <- temp_matrix # Replace with the full matrix
+           warning("Matrix columns adjusted to match full x-axis levels.")
+       }
+
+       # Row names are automatically assigned by the first column in pivot_wider usually,
+       # but let's explicitly assign based on the arranged data frame's y_bin_label column
+       rownames(heatmap_matrix) <- y_labels_in_matrix
+
+      return(list(
+          z = heatmap_matrix,
+          x = x_axis_labels, # Use the factor levels as axis labels
+          y = y_axis_labels, # Use the factor levels as axis labels
+          x_col_name = x_col,
+          y_col_name = y_col,
+          value_col_name = value_col
+          ))
+
+  }, error = function(e){
+       warning("Error during heatmap aggregation: ", e$message)
+       return(NULL)
+  })
+}
+```
+
+```{r, shiny_UI}
+# --- Block 6b: Shiny App UI Definition ---
+
+#' Define Shiny UI for Optimization Heatmap
+#' Creates the user interface components for the Shiny app.
+#' @param max_bins Maximum number of slider bins needed (integer).
+#' @return A fluidPage UI object suitable for use with shinyApp().
+define_optimization_ui <- function(max_bins) {
+  shiny::fluidPage(
+    shiny::titlePanel("Interactive Optimization Results Heatmap"),
+    shiny::sidebarLayout(
+      shiny::sidebarPanel(
+        # Slider to select bin of the third parameter
+        shiny::sliderInput("binSelectSlider",
+                           "Select Parameter Bin:", # Label updated dynamically in server
+                           min = 0,
+                           max = max(0, max_bins - 1), # Ensure max is at least 0
+                           value = 0,
+                           step = 1),
+        # Text output to display the range selected by the slider
+        shiny::textOutput("rangeInfoText")
+      ),
+      shiny::mainPanel(
+        # Output area for the interactive heatmap plot
+        plotly::plotlyOutput("heatmapPlot", height = "650px")
+      )
+    )
+  )
+}
+```
+
+```{r, Shiny_server}
+# --- Block 6c: Shiny App Server Definition (Further Robustness) ---
+
+#' Define Shiny Server Logic for Optimization Heatmap
+#' Encapsulates the server-side reactive logic and plot rendering.
+#' Assumes `aggregate_heatmap_data` helper function (Block 6a - Corrected) is loaded.
+#' @param input Shiny input object.
+#' @param output Shiny output object.
+#' @param session Shiny session object.
+#' @param all_results_df Data frame with all optimization iteration results.
+#' @param x_col Column name for x-axis (string).
+#' @param y_col Column name for y-axis (string).
+#' @param color_col Column name for heatmap color value (string).
+#' @param slider_col Column name used for binning the slider (string).
+#' @param n_bins Number of bins used for the slider (integer).
+#' @return The server function required by shinyApp().
+# --- Block 6c: Shiny App Server Definition (REVISED v3 - Focus on Reactivity) ---
+
+#' Define Shiny Server Logic for Optimization Heatmap
+#' Encapsulates the server-side reactive logic and plot rendering.
+#' Assumes `aggregate_heatmap_data` helper function (Block 6a - v2 Corrected) is loaded.
+define_optimization_server <- function(input, output, session, all_results_df,
+                                       x_col, y_col, color_col, slider_col, n_bins) {
+
+  # --- Server Logic ---
+  # 1. Prepare Data (only once) - Keep as is
+  all_results_clean <- all_results_df %>%
+    dplyr::mutate(dplyr::across(dplyr::all_of(c(x_col, y_col, color_col, slider_col)), as.numeric)) %>%
+    dplyr::filter(dplyr::across(dplyr::all_of(c(x_col, y_col, color_col, slider_col)), is.finite))
+
+  if(nrow(all_results_clean) == 0) {
+      warning("Shiny Server: No finite data.", call. = FALSE)
+      output$heatmapPlot <- plotly::renderPlotly({ plotly::plotly_empty() %>% plotly::layout(title = "No valid data") })
+      return()
+  }
+
+  slider_min <- min(all_results_clean[[slider_col]], na.rm = TRUE)
+  slider_max <- max(all_results_clean[[slider_col]], na.rm = TRUE)
+  if (abs(slider_max - slider_min) < .Machine$double.eps) {
+        slider_breaks <- c(slider_min - 0.1, slider_max + 0.1)
+        actual_n_bins <- 1
+        n_bins <- 1
+  } else {
+        slider_breaks <- unique(seq(slider_min, slider_max, length.out = n_bins + 1))
+        actual_n_bins <- length(slider_breaks) - 1
+  }
+
+  if(actual_n_bins < 1) {
+        warning("Shiny Server: Cannot create slider bins.", call. = FALSE)
+        output$heatmapPlot <- plotly::renderPlotly({ plotly::plotly_empty() %>% plotly::layout(title = "Cannot create slider bins") })
+        return()
+  }
+
+  all_results_clean <- all_results_clean %>%
+     dplyr::mutate(slider_bin = cut(.data[[slider_col]], breaks = slider_breaks,
+                                    labels = FALSE, include.lowest = TRUE, right = FALSE) - 1) %>%
+     dplyr::mutate(slider_bin = ifelse(is.na(slider_bin) & abs(.data[[slider_col]] - slider_max) < .Machine$double.eps,
+                                       actual_n_bins - 1, slider_bin)) %>%
+     dplyr::filter(!is.na(slider_bin))
+
+  bin_edges <- slider_breaks
+
+  # 2. Update Slider
+  shiny::observe({
+      # Make sure slider input exists before trying to update it
+      # Although this observe should only run once typically
+      shiny::req(input$binSelectSlider)
+      shiny::updateSliderInput(session, "binSelectSlider",
+                                label = paste("Select", gsub("_"," ", slider_col), "Bin:"),
+                                max = max(0, actual_n_bins - 1))
+   })
+
+  # 3. Reactive: Current Slider Bin (with validation)
+  current_selected_bin <- shiny::reactive({
+      shiny::req(input$binSelectSlider) # Require slider input exists
+      bin_val <- as.numeric(input$binSelectSlider)
+      # Validate the numeric value against actual bins
+      shiny::validate(
+          shiny::need(bin_val >= 0 && bin_val < actual_n_bins, "Invalid bin selected.")
+      )
+      return(bin_val)
+  })
+
+  # 4. Reactive: Slider Range Text (dependent on validated bin)
+  rangeText <- shiny::reactive({
+      current_bin <- current_selected_bin() # Use the validated reactive bin
+      idx <- current_bin + 1
+      bin_min <- bin_edges[idx]
+      bin_max <- bin_edges[idx + 1]
+      val_format <- if (grepl("pct", slider_col, ignore.case = TRUE)) {
+          function(x) paste0(round(x*100, 1), "%")
+      } else { function(x) round(x, 3) }
+      paste(gsub("_"," ",slider_col),"Range:", val_format(bin_min), "-", val_format(bin_max))
+   })
+
+  # 5. Reactive: Filtered Data (dependent on validated bin)
+  filteredData <- shiny::reactive({
+      current_bin <- current_selected_bin() # Use the validated reactive bin
+      dplyr::filter(all_results_clean, slider_bin == current_bin)
+   })
+
+  # 6. Reactive: Aggregated Data for Plotting (dependent on filtered data)
+  # Isolate the aggregation step
+  heatmap_data_reactive <- shiny::reactive({
+      plot_data <- filteredData()
+      # Require minimum data points *before* aggregation attempt
+      shiny::validate(
+          shiny::need(nrow(plot_data) >= 3, paste("Not Enough Data Points in Range:", rangeText()))
+      )
+      # Perform aggregation
+      agg_data <- aggregate_heatmap_data(
+          data = plot_data, x_col = x_col, y_col = y_col, value_col = color_col,
+          n_bins_x = 15, n_bins_y = 15
+      )
+      # Validate the output of aggregation
+      shiny::validate(
+          shiny::need(!is.null(agg_data), "Heatmap aggregation failed."),
+          shiny::need(is.list(agg_data) && all(c("z", "x", "y") %in% names(agg_data)), "Incorrect structure from aggregation."),
+          shiny::need(is.matrix(agg_data$z) && nrow(agg_data$z) > 0 && ncol(agg_data$z) > 0, "Aggregated matrix (z) is invalid."),
+          shiny::need(is.character(agg_data$x) && length(agg_data$x) == ncol(agg_data$z), "X-axis labels mismatch matrix columns."),
+          shiny::need(is.character(agg_data$y) && length(agg_data$y) == nrow(agg_data$z), "Y-axis labels mismatch matrix rows.")
+      )
+      return(agg_data)
+  })
+
+   # 7. Render slider range text
+   output$rangeInfoText <- shiny::renderText({ rangeText() })
+
+   # 8. Render the heatmap plot (dependent on aggregated data reactive)
+   output$heatmapPlot <- plotly::renderPlotly({
+      # Use the validated reactive aggregation result
+      agg_data <- heatmap_data_reactive()
+      title_range <- rangeText() # Get corresponding title text
+
+      # Create the plotly heatmap
+      plotly::plot_ly(
+          z = agg_data$z, x = agg_data$x, y = agg_data$y,
+          type = "heatmap", colorscale = "Viridis", reversescale = TRUE,
+          hoverinfo = 'x+y+z',
+          hovertemplate = paste(
+             "<b>", gsub("_", " ", agg_data$x_col_name), ":</b> %{x}<br>",
+             "<b>", gsub("_", " ", agg_data$y_col_name), ":</b> %{y}<br>",
+             "<b>Avg ", gsub("_", " ", agg_data$value_col_name), ":</b> %{z:.4f}<extra></extra>"
+          ),
+          colorbar = list(title = paste("Avg", gsub("_"," ",agg_data$value_col_name)))
+        ) %>%
+        plotly::layout(
+          title = paste("Avg", gsub("_"," ",agg_data$value_col_name), "Heatmap -", title_range),
+          xaxis = list(title = gsub("_"," ",agg_data$x_col_name), type = 'category', tickangle = -45),
+          yaxis = list(title = gsub("_"," ",agg_data$y_col_name), type = 'category', autorange = "reversed"),
+          margin = list(l=100, r=20, b=100, t=50)
+        )
+   }) # End renderPlotly
+}
+```
+
+```{r, launch_app}
+# --- Block 6d: Shiny App Launch Function ---
+
+#' Launch Optimization Results Shiny App
+#' Sets up and launches the Shiny application using defined UI and Server logic.
+#' Assumes UI/Server definition functions (Blocks 6b, 6c) are loaded.
+#' @param optimization_results_df Data frame containing results from all optimization iterations.
+#' @param x_axis_col Column name for heatmap x-axis (string).
+#' @param y_axis_col Column name for heatmap y-axis (string).
+#' @param color_val_col Column name for heatmap color value (string).
+#' @param slider_col_name Column name to use for the filter slider (string).
+#' @param num_slider_bins Number of bins for the slider (integer).
+#' @return Does not return a value; launches the Shiny app in the viewer or browser.
+launch_optimization_shiny_app <- function(optimization_results_df,
+                                           x_axis_col = "upper_threshold",
+                                           y_axis_col = "lower_threshold",
+                                           color_val_col = "omega",
+                                           slider_col_name = "stop_loss_pct",
+                                           num_slider_bins = 10) {
+
+    # --- Input Validation ---
+    if (!is.data.frame(optimization_results_df) || nrow(optimization_results_df) == 0) {
+        stop("Shiny Launch: Invalid or empty data frame provided.", call. = FALSE)
+    }
+    required_cols <- c(x_axis_col, y_axis_col, color_val_col, slider_col_name)
+    if (!all(required_cols %in% names(optimization_results_df))) {
+       missing_cols <- required_cols[!required_cols %in% names(optimization_results_df)]
+       stop("Shiny Launch: Data frame missing required columns: ", paste(missing_cols, collapse=", "), call. = FALSE)
+    }
+    if(!is.numeric(num_slider_bins) || num_slider_bins < 1) {
+        stop("Shiny Launch: 'num_slider_bins' must be a positive integer.", call. = FALSE)
+    }
+
+    # --- Define Server Function Dynamically ---
+    # This creates the specific server function needed by shinyApp
+    server_function <- function(input, output, session) {
+      # Call the main server logic definition function
+      define_optimization_server(
+          input = input, output = output, session = session,
+          all_results_df = optimization_results_df, # Pass the data
+          x_col = x_axis_col, y_col = y_axis_col, color_col = color_val_col,
+          slider_col = slider_col_name, n_bins = num_slider_bins
+      )
+    }
+
+    # --- Define UI Function Dynamically ---
+    # This creates the specific UI object needed by shinyApp
+    ui_function <- define_optimization_ui(max_bins = num_slider_bins)
+
+    # --- Launch the App ---
+    message("Launching Shiny app...")
+    # Consider running in browser for better experience if viewer is cramped
+    options(shiny.launch.browser = TRUE)
+    shiny::shinyApp(ui = ui_function, server = server_function)
+}
+```
+
+### **Example Usage**
+
+```{r, best_results, message= FALSE, warning = FALSE}
+# --- SCRIPT 1: Run Optimization & Save Results ---
+
+# --- 0. Setup: Load Packages & Define ALL Previous Functions ---
+# PLEASE ENSURE ALL NECESSARY PACKAGES ARE LOADED AND ALL MODULAR FUNCTIONS
+# (Blocks 1, 2, 3(Corrected), 4(Modified), 5a(Modified), 5b-Parallel)
+# ARE DEFINED IN YOUR R ENVIRONMENT BEFORE RUNNING THIS SCRIPT.
+# Example (replace with your actual sourcing/definition):
+# source("scripts/load_packages.R"); load_all_packages()
+# source("scripts/data_retrieval.R")
+# source("scripts/gini_analysis.R")
+# source("scripts/aladdin_helpers.R")
+# source("scripts/aladdin_backtest.R")
+# source("scripts/optimization_helpers.R")
+# source("scripts/optimization_parallel.R")
+
+
+# --- 1. Define Parameters ---
+ticker_1 <- "BTC-USD"
+ticker_2 <- "XRP-USD" # Ratio is BTC/ETH
+results_filename <- "crypto_optimization_results.rds" # Output file name
+
+# Define parameter search space
+opt_bounds <- list(
+    upper_threshold = c(0.7, 2.2),
+    lower_threshold = c(-2.2, -0.7),
+    stop_loss = c(0.08, 0.30)
+)
+opt_values <- list(
+    macd_fast = c(9, 12, 15, 18),
+    macd_slow = c(21, 26, 30, 35, 40),
+    macd_sig = c(6, 9, 12)
+)
+fixed_vals <- list(
+    initial_capital = 10000,
+    txn_fee = 0.001,
+    omega_threshold = 0
+)
+n_iterations_to_run <- 50 # Set the desired number of optimization iterations
+
+# --- 2. Run Parallel Optimization ---
+message("Starting optimization for ", ticker_1, "/", ticker_2, "...")
+optimization_run_parallel <- NULL
+optimization_run_parallel <- tryCatch({
+     run_strategy_optimization_parallel( # Call the parallel function from Block 5b-Parallel
+       ticker1 = ticker_1, ticker2 = ticker_2,
+       param_bounds = opt_bounds, param_values = opt_values,
+       n_iterations = n_iterations_to_run,
+       fixed_params = fixed_vals,
+       workers = future::availableCores() - 2,
+       return_details = TRUE,          # Get details of the best run
+       return_iterations_log = TRUE,   # MUST be TRUE to save data for Shiny
+       verbose = TRUE,               # Show progress (Omega score only during loop)
+       set_seed = 1234
+    )
+ }, error = function(e) {
+    message("!!! PARALLEL OPTIMIZATION FAILED: ", e$message); NULL
+ })
+
+
+# --- 3. Process and Save Best Results ---
+if (!is.null(optimization_run_parallel) && !is.null(optimization_run_parallel$best_parameters)) {
+
+    message("\n--- Best Parameters Found ---")
+    best_params_df <- as.data.frame(optimization_run_parallel$best_parameters)
+    print(best_params_df)
+    message(paste("Best Omega Score:", round(optimization_run_parallel$best_omega_score, 4)))
+
+    # Save best parameters to a CSV file (optional)
+    tryCatch({
+        write.csv(best_params_df, "best_parameters.csv", row.names = FALSE)
+        message("Saved best parameters to best_parameters.csv")
+    }, error = function(e) { message("Warning: Could not save best parameters CSV - ", e$message) })
+
+
+    # Process details of the best run
+    if (!is.null(optimization_run_parallel$details_best_run)) {
+        message("\n--- Performance Summary (Best Run) ---")
+        print(optimization_run_parallel$details_best_run$performance_summary)
+
+        # Save the plots
+         tryCatch({
+            plot_eq <- optimization_run_parallel$details_best_run$equity_curve_plot
+            plot_det <- optimization_run_parallel$details_best_run$detailed_backtest_plot
+            if(!is.null(plot_eq)) ggsave("best_run_parallel_equity.png", plot = plot_eq, width = 10, height = 6)
+            if(!is.null(plot_det)) ggsave("best_run_parallel_detailed.png", plot = plot_det, width = 11, height = 13) # Slightly wider/taller for detail
+            message("\nSaved best run plots to working directory:")
+             if(!is.null(plot_eq)) message("- best_run_parallel_equity.png")
+             if(!is.null(plot_det)) message("- best_run_parallel_detailed.png")
+        }, error = function(e) { message("Warning: Could not save best run plots - ", e$message) })
+
+    } else {
+        message("\nDetailed results for the best run were not generated (rerun may have failed).")
+    }
+
+    # --- 4. Save Iteration Results Data Frame for Shiny App ---
+    if (!is.null(optimization_run_parallel$all_iteration_results_df)) {
+        results_df_to_save <- optimization_run_parallel$all_iteration_results_df %>%
+                              dplyr::filter(is.finite(omega)) # Save only finite results
+
+        if (nrow(results_df_to_save) > 0) {
+            tryCatch({
+                saveRDS(results_df_to_save, file = results_filename)
+                message("\nSuccessfully saved ", nrow(results_df_to_save), " valid optimization results to: ", results_filename)
+            }, error = function(e) {
+                message("\nError saving optimization results file ('", results_filename,"'): ", e$message)
+            })
+        } else {
+            message("\nNo valid finite optimization results found in the log to save for Shiny.")
+        }
+    } else {
+        message("\nOptimization results log data frame not generated (was return_iterations_log=FALSE?), cannot save file for Shiny.")
+    }
+
+} else {
+    message("\nOptimization did not complete successfully or find any suitable best parameters.")
+}
+
+message("\n--- Optimization Script (Script 1) Finished ---")
+```
+
+```{r, Shiny_app, warning= FALSE, error = FALSE}
+# --- SCRIPT 2: Load Results & Launch Shiny App ---
+
+# --- 0. Setup: Load Packages & Define Shiny Functions ---
+# PLEASE ENSURE Shiny-related packages ARE LOADED AND the Shiny-specific
+# function blocks (1, 6a(v2 Corrected), 6b, 6c(v3 Revised), 6d) ARE DEFINED
+# IN YOUR R ENVIRONMENT BEFORE RUNNING THIS SCRIPT.
+
+# Example (replace with your actual sourcing/definition):
+# source("scripts/load_packages.R"); load_all_packages() # Ensure Shiny, Plotly etc. loaded
+# source("scripts/shiny_agg_helper.R")
+# source("scripts/shiny_ui.R")
+# source("scripts/shiny_server.R")
+# source("scripts/shiny_launch.R")
+
+
+# --- 1. Define File Name and Load Results ---
+results_filename <- "crypto_optimization_results.rds" # MUST match the filename used in Script 1
+optimization_results_df <- NULL # Initialize
+
+if (file.exists(results_filename)) {
+    message("Loading optimization results from: ", results_filename)
+    optimization_results_df <- tryCatch({
+        loaded_data <- readRDS(results_filename)
+        # Add validation step after loading
+        if (!is.data.frame(loaded_data)) {
+            stop("Loaded object is not a data frame.")
+        }
+        if (nrow(loaded_data) == 0) {
+           stop("Loaded data frame is empty.")
+        }
+        # Add check for required columns (based on defaults in launch function)
+        required_cols <- c("upper_threshold", "lower_threshold", "omega", "stop_loss_pct")
+         if (!all(required_cols %in% names(loaded_data))) {
+           missing_cols <- required_cols[!required_cols %in% names(loaded_data)]
+           stop("Loaded data frame missing required columns: ", paste(missing_cols, collapse=", "))
+         }
+         message("Data loaded and appears valid.")
+        loaded_data # Return the validated data frame
+    }, error = function(e) {
+        message("Error loading or validating results file '", results_filename,"': ", e$message); NULL
+    })
+} else {
+    message("Results file not found: '", results_filename, "'. Please run Script 1 first to generate it.")
+}
+
+# --- 2. Define Plotting Columns and Launch App (if data loaded successfully) ---
+if (!is.null(optimization_results_df)) {
+
+    # Define which columns from the loaded data frame to use for the app
+    x_axis_col = "upper_threshold"     # Parameter for X axis
+    y_axis_col = "lower_threshold"     # Parameter for Y axis
+    color_val_col = "omega"            # Value for color intensity
+    slider_col_name = "stop_loss_pct"  # Parameter for slider filter
+    num_slider_bins = 8                # Number of bins for the slider
+
+    # --- Launch the Shiny app ---
+    message("Attempting to launch Shiny app...")
+    tryCatch({
+        # Ensure the launch function exists before calling
+        if (!exists("launch_optimization_shiny_app") || !is.function(launch_optimization_shiny_app)) {
+            stop("Function 'launch_optimization_shiny_app' is not defined. Ensure Block 6d is loaded.")
+        }
+        launch_optimization_shiny_app(
+           optimization_results_df = optimization_results_df, # Pass loaded data
+           x_axis_col = x_axis_col,
+           y_axis_col = y_axis_col,
+           color_val_col = color_val_col,
+           slider_col_name = slider_col_name,
+           num_slider_bins = num_slider_bins
+        )
+    }, error = function(e){
+         message("Error during Shiny App launch: ", e$message)
+         message("Please ensure all necessary Shiny helper functions (Blocks 6a, 6b, 6c, 6d) are loaded correctly.")
+    })
+
+} else {
+    message("Cannot launch Shiny app because optimization results failed to load or were invalid.")
+}
+
+message("\n--- Shiny Launch Script (Script 2) Finished ---")
+```
+
+```{r, run_functions, message = FALSE}
+# # --- Define your desired crypto pair ---
+# ticker_1 <- "BTC-USD" # Denominator
+# ticker_2 <- "LINK-USD" # Numerator (e.g., LINK/BTC ratio)
+# # Or: ticker_2 <- "ETH-USD"
+# 
+# # --- 1. Get Data ---
+# print(paste("Fetching data for", ticker_2, "/", ticker_1))
+# an_data <- get_simple_crypto_ratio_refactored(ticker_1, ticker_2)
+# 
+# # --- Check if data fetching was successful ---
+# if (!is.null(an_data) && nrow(an_data) > 0) {
+# 
+#   print("Data fetched successfully. Running Gini analysis...")
+#   # --- 2. Run Gini Analysis ---
+#   # You can adjust thresholds here if needed
+#   analysis_results <- run_gini_analysis(an_data, upper_threshold = 1.0, lower_threshold = -0.8)
+#   print("Gini analysis complete. Running Aladdin backtest...")
+# 
+#   # --- 3. Run Aladdin Backtest ---
+#   # You can adjust backtest parameters here if needed
+#   backtest_results <- run_aladdin_backtest(
+#                           analysis_results,
+#                           macd_fast = 12,
+#                           macd_slow = 26,
+#                           macd_sig = 9,
+#                           initial_capital = 10000,
+#                           txn_fee = 0.001,       # 0.1% fee per leg
+#                           stop_loss_pct = 0.20   # 20% stop loss on pair equity
+#                         )
+#   print("Backtest complete.")
+# 
+#   # --- 4. View Results ---
+#   print("--- Performance Summary ---")
+#   print(backtest_results$performance_summary)
+# 
+#   print("--- Displaying Plots ---")
+#   # In RStudio, plots will appear in the Plots pane.
+#   # If running in plain R console, they might open in separate windows.
+#   print(backtest_results$performance_plot) # Show equity curve
+#   Sys.sleep(2) # Pause briefly to allow plot window to appear/update
+#   print(backtest_results$detailed_plot)    # Show detailed multi-panel plot
+# 
+#   # --- Optionally, explore other results ---
+#   # print("--- Trade Log ---")
+#   # print(head(backtest_results$trades_log))
+#   #
+#   # print("--- Equity Curve Data ---")
+#   # print(tail(backtest_results$equity_curve_data))
+#   #
+#   # print("--- Data with Strategy Indicators/State ---")
+#   # print(head(backtest_results$data_with_strategy))
+# 
+# } else {
+#   # This message executes if get_simple_crypto_ratio_refactored returned NULL or empty df
+#   message("Failed to retrieve or process initial data for the specified tickers. Cannot proceed with analysis or backtest.")
+# }
+```
